@@ -51,3 +51,21 @@ CREATE TABLE IF NOT EXISTS routineExercise(
     routine_id INTEGER NOT NULL,
     FOREIGN KEY (routine_id) REFERENCES routine (id) ON DELETE CASCADE
 )
+
+CREATE TABLE IF NOT EXISTS exercise(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR (100) NOT NULL,
+    category VARCHAR (50) NOT NULL,
+    muscle_group VARCHAR (50) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+
+CREATE TABLE IF NOT EXISTS workoutExercise(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_index INTEGER NOT NULL,
+    notes TEXT,
+    workout_id INTEGER NOT NULL,
+    FOREIGN KEY (workout_id) REFERENCES workoutSession (id) ON DELETE CASCADE,
+    exercise_id INTEGER NOT NULL,
+    FOREIGN KEY (exercise_id) REFERENCES exercise (id) ON DELETE CASCADE
+)
