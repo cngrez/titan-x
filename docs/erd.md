@@ -132,25 +132,5 @@ Individual sets logged for an exercise in a workout.
 | notes | TEXT | Set-specific notes |
 | created_at | TIMESTAMP | Record creation date |
 
----
 
-### Personal Records
-
-Tracks all-time and recent personal records.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key → Users |
-| exercise_id | UUID | Foreign key → Exercises |
-| weight | DECIMAL(5,2) | PR weight lifted |
-| reps | INTEGER | PR reps completed |
-| set_number | INTEGER | Which set |
-| achieved_date | DATE | When PR was set |
-| pr_type | VARCHAR(20) | weight, volume, or 1RM |
-| is_all_time | BOOLEAN | True = all-time PR |
-| workout_exercise_id | UUID | Foreign key → Workout Exercises (optional) |
-| created_at | TIMESTAMP | Record creation date |
-
----
 
