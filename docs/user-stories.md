@@ -50,4 +50,4 @@
 
 ## Approval
 
-- [ ] Client approved
+- [x] Client approved
