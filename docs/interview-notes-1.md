@@ -32,7 +32,7 @@
 
 ---
 
-## Out of Scope (Client Said NO)
+## Out of Scope (Client not necessary)
 -  Social features (friends, competition)
 -  Meal tracking / calorie counting
 -  Wearable integration
