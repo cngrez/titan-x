@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS workoutSession(
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     user_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     routine_id INTEGER,
     FOREIGN KEY (routine_id) REFERENCES workoutRoutines (id) ON DELETE CASCADE
 )

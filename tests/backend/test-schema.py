@@ -45,3 +45,6 @@ def test_schema():
 
 if __name__ == "__main__":
     test_schema()
+
+    #To run the test, execute the following command in your terminal:
+    # python tests/backend/test-schema.py
