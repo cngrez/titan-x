@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password VARCHAR (255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS body_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    weight DECIMAL (5, 2) NOT NULL,
+    height DECIMAL (5, 2) NOT NULL,
+    body_fat_percentage DECIMAL (4, 1),
+    muscle_mass DECIMAL (4, 1),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
