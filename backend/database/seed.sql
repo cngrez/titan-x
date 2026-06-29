@@ -38,3 +38,16 @@ CREATE TABLE IF NOT EXISTS routine(
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 )
+
+CREATE TABLE IF NOT EXISTS routineExercise(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_index INTEGER NOT NULL,
+    default_sets INTEGER NOT NULL,  
+    default_reps INTEGER NOT NULL,
+    default_weight DECIMAL (5, 2) NOT NULL,
+    notes TEXT, 
+    exercise_id INTEGER NOT NULL,
+    FOREIGN KEY (exercise_id) REFERENCES exercises (id) ON DELETE CASCADE,
+    routine_id INTEGER NOT NULL,
+    FOREIGN KEY (routine_id) REFERENCES routine (id) ON DELETE CASCADE
+)
