@@ -38,7 +38,7 @@ def test_schema():
             print(f"  - {table[0]}")
 
     except sqlite3.Error as e:
-        print(f"❌ Schema error: {e}")
+        print(f"❌ {repr(e)}")
 
     finally:
         conn.close()
