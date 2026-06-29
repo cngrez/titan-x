@@ -69,3 +69,16 @@ CREATE TABLE IF NOT EXISTS workoutExercise(
     exercise_id INTEGER NOT NULL,
     FOREIGN KEY (exercise_id) REFERENCES exercise (id) ON DELETE CASCADE
 )
+
+CREATE TABLE IF NOT EXISTS setLogs(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_number INTEGER NOT NULL,
+    reps INTEGER NOT NULL,
+    weight DECIMAL (5, 2) NOT NULL,
+    rpe INTEGER NOT NULL,
+    is_warmup BOOLEAN DEFAULT TRUE,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    workout_exercise_id INTEGER NOT NULL,
+    FOREIGN KEY (workout_exercise_id) REFERENCES workoutExercise (id) ON DELETE CASCADE
+)
