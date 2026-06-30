@@ -237,3 +237,10 @@ INSERT INTO set_logs (workout_exercise_id, set_number, reps, weight, rpe, is_war
 (10, 1, 12, 10.00, 5, 1, 'Warmup'),
 (10, 2, 12, 15.00, 7, 0, ''),
 (10, 3, 10, 17.50, 8, 0, '');
+
+
+-- users: 3 rows
+-- exercise: 29 rows
+-- routine: 8 rows
+-- workout_session: 10 rows
+-- set_logs: 34 rows
