@@ -48,7 +48,10 @@ class WorkoutDatabase:
         cursor = self.conn.execute(sql, params)
         return cursor.fetchone()
 
-
+    def fetch_all(self, sql: str, params: tuple = ()):
+        """Return multiple rows."""
+        cursor = self.conn.execute(sql, params)
+        return cursor.fetchall()
 
 
 
