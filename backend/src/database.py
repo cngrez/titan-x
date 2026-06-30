@@ -34,23 +34,27 @@ class WorkoutDatabase:
         with self.conn:
             self.conn.executescript(
                 self.seed_path.read_text(encoding="utf-8")
+        print("Database initialized and seeded successfully!")
             )
 
     def execute(self, sql: str, params: tuple = ()):
         """Execute INSERT/UPDATE/DELETE statements."""
         with self.conn:
             cursor = self.conn.execute(sql, params)
+            print(f"Executed SQL: {sql} with params: {params}")
 
         return cursor
 
     def fetch_one(self, sql: str, params: tuple = ()):
         """Return a single row."""
         cursor = self.conn.execute(sql, params)
+        print(f"Executed SQL: {sql} with params: {params}")
         return cursor.fetchone()
 
     def fetch_all(self, sql: str, params: tuple = ()):
         """Return multiple rows."""
         cursor = self.conn.execute(sql, params)
+        print(f"Executed SQL: {sql} with params: {params}")
         return cursor.fetchall()
     
     def close(self):
