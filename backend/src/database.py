@@ -36,6 +36,13 @@ class WorkoutDatabase:
                 self.seed_path.read_text(encoding="utf-8")
             )
 
+    def execute(self, sql: str, params: tuple = ()):
+        """Execute INSERT/UPDATE/DELETE statements."""
+        with self.conn:
+            cursor = self.conn.execute(sql, params)
+
+        return cursor
+
 
 
 
