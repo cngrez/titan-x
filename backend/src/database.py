@@ -14,3 +14,13 @@ class WorkoutDatabase:
         self.conn.row_factory = sqlite3.Row
 
         self.conn.execute("PRAGMA foreign_keys = ON")
+
+
+    def initialize(self):
+        """Create all database tables."""
+        print("Initializing database...")
+
+        with self.conn:
+            self.conn.executescript(
+                self.schema_path.read_text(encoding="utf-8")
+            )
