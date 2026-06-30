@@ -23,6 +23,7 @@ class WorkoutDatabase:
             self.conn.executescript(
                 self.schema_path.read_text(encoding="utf-8")
             )
+            print("Database initialized successfully!")
 
     def seed(self):
         """Insert seed data."""
@@ -34,8 +35,8 @@ class WorkoutDatabase:
         with self.conn:
             self.conn.executescript(
                 self.seed_path.read_text(encoding="utf-8")
-        print("Database initialized and seeded successfully!")
             )
+        print("Database seeded successfully!")
 
     def execute(self, sql: str, params: tuple = ()):
         """Execute INSERT/UPDATE/DELETE statements."""
