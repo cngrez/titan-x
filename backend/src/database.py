@@ -52,6 +52,10 @@ class WorkoutDatabase:
         """Return multiple rows."""
         cursor = self.conn.execute(sql, params)
         return cursor.fetchall()
+    
+    def close(self):
+        """Close the database connection."""
+        self.conn.close()
 
 
 
