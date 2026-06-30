@@ -15,7 +15,6 @@ class WorkoutDatabase:
 
         self.conn.execute("PRAGMA foreign_keys = ON")
 
-
     def initialize(self):
         """Create all database tables."""
         print("Initializing database...")
@@ -24,3 +23,20 @@ class WorkoutDatabase:
             self.conn.executescript(
                 self.schema_path.read_text(encoding="utf-8")
             )
+
+    def seed(self):
+        """Insert seed data."""
+        if not self.seed_path.exists():
+            return
+
+        print("Seeding database...")
+
+        with self.conn:
+            self.conn.executescript(
+                self.seed_path.read_text(encoding="utf-8")
+            )
+
+
+
+
+
