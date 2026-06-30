@@ -43,6 +43,11 @@ class WorkoutDatabase:
 
         return cursor
 
+    def fetch_one(self, sql: str, params: tuple = ()):
+        """Return a single row."""
+        cursor = self.conn.execute(sql, params)
+        return cursor.fetchone()
+
 
 
 
