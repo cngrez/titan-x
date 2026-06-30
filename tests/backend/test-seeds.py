@@ -1,4 +1,11 @@
-# quick_seed_check.py
+"""
+Schema validation tests.
+
+AI Assistance: This file was developed with assistance from DeepSeek
+
+Prompts used:
+- "Write a Python script to check if seeding data was successful"
+"""
 import sqlite3
 
 conn = sqlite3.connect("workout.db")
