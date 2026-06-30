@@ -20,22 +20,28 @@ class WorkoutDatabase:
         print("Initializing database...")
 
         with self.conn:
-            self.conn.executescript(
-                self.schema_path.read_text(encoding="utf-8")
-            )
+            self.conn.executescript(self.schema_path.read_text(encoding="utf-8"))
             print("Database initialized successfully!")
 
     def seed(self):
         """Insert seed data."""
         if not self.seed_path.exists():
+            print("⚠️ No seed file found. Skipping...")
             return
 
-        print("Seeding database...")
+        print("🌱 Seeding database...")
+
+        # Check if already seeded
+        count = self.fetch_one("SELECT COUNT(*) as count FROM users")['count']
+        if count > 0:
+            print(" Database already seeded. Skipping...")
+            return
 
         with self.conn:
             self.conn.executescript(
                 self.seed_path.read_text(encoding="utf-8")
             )
+
         print("Database seeded successfully!")
 
     def execute(self, sql: str, params: tuple = ()):
@@ -57,10 +63,7 @@ class WorkoutDatabase:
         cursor = self.conn.execute(sql, params)
         print(f"Executed SQL: {sql} with params: {params}")
         return cursor.fetchall()
-    
+
     def close(self):
         """Close the database connection."""
         self.conn.close()
-
-
-
