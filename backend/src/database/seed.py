@@ -1,4 +1,4 @@
-from database import WorkoutDatabase
+from backend.src.database.database import WorkoutDatabase
 
 def main():
     db = WorkoutDatabase("workout.db")

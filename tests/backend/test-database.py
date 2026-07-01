@@ -9,7 +9,7 @@ Prompts used:
 """
 
 
-from backend.src.database import WorkoutDatabase
+from backend.src.database.database import WorkoutDatabase
 import sys
 from pathlib import Path
 
