@@ -1,7 +1,6 @@
 from pathlib import Path
 import sqlite3
 
-
 class WorkoutDatabase:
     def __init__(self, db_path: str = "workout.db"):
         self.db_path = db_path

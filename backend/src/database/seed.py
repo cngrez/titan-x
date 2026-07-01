@@ -1,4 +1,4 @@
-from backend.src.database.database import WorkoutDatabase
+from database import WorkoutDatabase
 
 def main():
     db = WorkoutDatabase("workout.db")
@@ -10,4 +10,4 @@ if __name__ == "__main__":
     main()
 
 # To seed data, execute the following command in your terminal:
-# python backend/src/seed.py
+# python backend/src/database/seed.py
