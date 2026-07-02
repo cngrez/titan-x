@@ -17,7 +17,7 @@ def test_schema():
     project_root = Path(__file__).parent.parent.parent
     
     # Read the schema file
-    schema_path = project_root / "backend" / "src" / "schema.sql"
+    schema_path = project_root / "backend" / "src" /"database" / "schema.sql"
     
     with open(schema_path, "r") as f:
         schema_sql = f.read()

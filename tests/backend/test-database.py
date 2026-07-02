@@ -1,4 +1,3 @@
-# tests/backend/test-database.py
 """
 Schema validation tests.
 
@@ -8,13 +7,17 @@ Prompts used:
 - "Write a Python script to validate my database.py"
 """
 
-
-from backend.src.database.database import WorkoutDatabase
 import sys
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+try:
+    from backend.src.database import WorkoutDatabase
+except ImportError as e:
+    print(f"Error importing WorkoutDatabase: {e}")
+    sys.exit(1)
 
 def test_database():
     """Test all database methods."""
@@ -67,3 +70,6 @@ def test_database():
 
 if __name__ == "__main__":
     test_database()
+    
+#To run the test, execute the following command in your terminal:
+# python tests/backend/test-database.py

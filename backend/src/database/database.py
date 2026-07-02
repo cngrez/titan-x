@@ -28,7 +28,7 @@ class WorkoutDatabase:
             print("⚠️ No seed file found. Skipping...")
             return
 
-        print("🌱 Seeding database...")
+        print(" Seeding database...")
 
         # Check if already seeded
         count = self.fetch_one("SELECT COUNT(*) as count FROM users")['count']
@@ -65,4 +65,5 @@ class WorkoutDatabase:
 
     def close(self):
         """Close the database connection."""
+        print("Database connection closed.")
         self.conn.close()
