@@ -1,10 +1,10 @@
 -- ============================================================
 -- 1. USERS
 -- ============================================================
-INSERT INTO users (name, email, password_hash) VALUES
-('John Doe', 'john@example.com', 'hashed_password_1'),
-('Jane Smith', 'jane@example.com', 'hashed_password_2'),
-('Alex Johnson', 'alex@example.com', 'hashed_password_3');
+INSERT INTO users (first_name, last_name, email, password_hash) VALUES
+('John', 'Doe', 'john@example.com', 'hashed_password_1'),
+('Jane', 'Smith', 'jane@example.com', 'hashed_password_2'),
+('Alex', 'Johnson', 'alex@example.com', 'hashed_password_3');
 
 -- ============================================================
 -- 2. EXERCISES
