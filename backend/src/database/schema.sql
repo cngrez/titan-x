@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users(
     last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'admin')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
