@@ -28,3 +28,25 @@ def get_exercise(
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
     return dict(exercise)
+
+# POST /api/exercises — admin only
+@router.post("/", response_model=ExerciseResponse, status_code=201)
+def create_exercise(
+    body: CreateExerciseRequest,
+    current_user=Depends(get_admin_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM exercise WHERE name = ?", (body.name,)
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="Exercise already exists")
+
+    cursor = db.execute(
+        "INSERT INTO exercise (name, category, muscle_group) VALUES (?, ?, ?)",
+        (body.name, body.category, body.muscle_group)
+    )
+    exercise = db.fetch_one(
+        "SELECT * FROM exercise WHERE id = ?", (cursor.lastrowid,)
+    )
+    return dict(exercise)
