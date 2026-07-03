@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    role: str
 
 class TokenResponse(BaseModel):
     """Response model for authentication."""
