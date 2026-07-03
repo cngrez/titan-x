@@ -50,3 +50,29 @@ def create_exercise(
         "SELECT * FROM exercise WHERE id = ?", (cursor.lastrowid,)
     )
     return dict(exercise)
+
+# PATCH /api/exercises/{id} — admin only
+@router.patch("/{exercise_id}", response_model=ExerciseResponse)
+def update_exercise(
+    exercise_id: int,
+    body: UpdateExerciseRequest,
+    current_user=Depends(get_admin_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM exercise WHERE id = ?", (exercise_id,)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [exercise_id]
+
+    db.execute(f"UPDATE exercise SET {set_clause} WHERE id = ?", tuple(values))
+
+    updated = db.fetch_one("SELECT * FROM exercise WHERE id = ?", (exercise_id,))
+    return dict(updated)
