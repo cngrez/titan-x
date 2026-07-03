@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.auth import router
 from database.database import WorkoutDatabase
+
+from routes.auth import router as auth_router
+from routes.user import router as user_router
 
 def create_app():
     app = FastAPI(
@@ -24,11 +26,8 @@ def create_app():
         allow_headers=["*"],
     )
 
-    app.include_router(router, prefix="/api")
-
-    @app.get("/health")
-    def health():
-        return {"status": "healthy", "message": "TitanX API is running"}
+    app.include_router(auth_router, prefix="/api")
+    app.include_router(user_router, prefix="/api")
 
     return app
 
