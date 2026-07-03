@@ -1,4 +1,3 @@
-# backend/src/dependencies/auth.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from utils.jwt import decode_token
@@ -11,7 +10,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: WorkoutDatabase = Depends(get_db)
 ):
-    """Validate JWT token and return current user."""
+    """Validate JWT token and return current user with role."""
     token = credentials.credentials
     
     # 1. Decode token
@@ -30,9 +29,9 @@ def get_current_user(
             detail="Invalid token payload"
         )
     
-    # 3. Get user from database (direct query, no repository)
+    # 3. Fetch user with role
     user = db.fetch_one(
-        "SELECT id, email, first_name, last_name FROM users WHERE id = ?",
+        "SELECT id, email, first_name, last_name, role FROM users WHERE id = ?",
         (int(user_id),)
     )
     
@@ -43,3 +42,14 @@ def get_current_user(
         )
     
     return user
+
+def get_current_admin_user(
+    current_user=Depends(get_current_user)
+):
+    """Ensure the current user is an admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admins only"
+        )
+    return current_user
