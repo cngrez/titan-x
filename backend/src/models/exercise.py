@@ -45,3 +45,10 @@ class UpdateExerciseRequest(BaseModel):
         if v.lower() not in VALID_MUSCLE_GROUPS:
             raise ValueError(f"Muscle group must be one of: {', '.join(VALID_MUSCLE_GROUPS)}")
         return v.lower()
+
+class ExerciseResponse(BaseModel):
+    id: int
+    name: str
+    category: str
+    muscle_group: str
+    created_at: str
