@@ -78,7 +78,8 @@ def get_me(current_user=Depends(get_current_user)):
         "id": current_user["id"],
         "email": current_user["email"],
         "first_name": current_user["first_name"],
-        "last_name": current_user["last_name"]
+        "last_name": current_user["last_name"],
+        "role": current_user["role"]    
     }
     
     # Admin-only route
