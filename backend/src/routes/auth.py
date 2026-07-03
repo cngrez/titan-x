@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.auth import RegisterRequest, LoginRequest, TokenResponse, UserResponse
 from dependencies.db import get_db
 from dependencies.auth import get_current_user
+from dependencies.auth import get_current_admin_user 
 from utils.security import hash_password, verify_password
 from utils.jwt import create_access_token
 from database.database import WorkoutDatabase
@@ -70,6 +71,7 @@ def login(
         }
     }
 
+    # Regular user route
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user=Depends(get_current_user)):
     return {
@@ -78,6 +80,12 @@ def get_me(current_user=Depends(get_current_user)):
         "first_name": current_user["first_name"],
         "last_name": current_user["last_name"]
     }
+    
+    # Admin-only route
+@router.get("/all-users")
+def get_all_users(current_user=Depends(get_current_admin_user)):
+    # Fetch or return all users here
+    return {"message": "List of all users"}
 
 @router.post("/logout")
 def logout():
