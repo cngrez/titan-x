@@ -58,3 +58,12 @@ def update_my_profile(
         (current_user["id"],)
     )
     return dict(updated)
+
+# DELETE /api/users/me — delete my account
+@router.delete("/me")
+def delete_my_account(
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    db.execute("DELETE FROM users WHERE id = ?", (current_user["id"],))
+    return {"message": "Account deleted"}
