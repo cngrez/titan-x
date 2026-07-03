@@ -76,3 +76,19 @@ def update_exercise(
 
     updated = db.fetch_one("SELECT * FROM exercise WHERE id = ?", (exercise_id,))
     return dict(updated)
+
+# DELETE /api/exercises/{id} — admin only
+@router.delete("/{exercise_id}")
+def delete_exercise(
+    exercise_id: int,
+    current_user=Depends(get_admin_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM exercise WHERE id = ?", (exercise_id,)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+
+    db.execute("DELETE FROM exercise WHERE id = ?", (exercise_id,))
+    return {"message": "Exercise deleted"}
