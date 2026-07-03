@@ -14,3 +14,17 @@ def get_all_exercises(
 ):
     exercises = db.fetch_all("SELECT * FROM exercise")
     return [dict(e) for e in exercises]
+
+# GET /api/exercises/{id} — get single exercise
+@router.get("/{exercise_id}", response_model=ExerciseResponse)
+def get_exercise(
+    exercise_id: int,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    exercise = db.fetch_one(
+        "SELECT * FROM exercise WHERE id = ?", (exercise_id,)
+    )
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    return dict(exercise)
