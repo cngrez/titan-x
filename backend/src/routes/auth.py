@@ -29,7 +29,7 @@ def register(
     user_id = cursor.lastrowid
     
     # 4. Generate token
-    token = create_access_token(user_id)
+    token = create_access_token(user_id, role="user")
     
     return {
         "access_token": token,
@@ -37,7 +37,8 @@ def register(
             "id": user_id,
             "email": body.email,
             "first_name": body.first_name,
-            "last_name": body.last_name
+            "last_name": body.last_name,
+            "role": "user"  # Default role
         }
     }
 
@@ -56,7 +57,7 @@ def login(
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # 3. Generate token
-    token = create_access_token(user["id"])
+    token = create_access_token(user["id"], role=user["role"])
     
     return {
         "access_token": token,
@@ -64,7 +65,8 @@ def login(
             "id": user["id"],
             "email": user["email"],
             "first_name": user["first_name"],
-            "last_name": user["last_name"]
+            "last_name": user["last_name"],
+            "role": user["role"]
         }
     }
 
