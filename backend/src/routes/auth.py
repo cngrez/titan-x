@@ -83,9 +83,14 @@ def get_me(current_user=Depends(get_current_user)):
     
     # Admin-only route
 @router.get("/all-users")
-def get_all_users(current_user=Depends(get_current_admin_user)):
-    # Fetch or return all users here
-    return {"message": "List of all users"}
+def get_all_users(
+    current_user=Depends(get_current_admin_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    users = db.fetch_all(
+        "SELECT id, first_name, last_name, email, role, created_at FROM users"
+    )
+    return [dict(user) for user in users]
 
 @router.post("/logout")
 def logout():
