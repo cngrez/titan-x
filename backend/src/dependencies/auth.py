@@ -41,7 +41,7 @@ def get_current_user(
             detail="User not found"
         )
     
-    return user
+    return dict(user)
 
 def get_current_admin_user(
     current_user=Depends(get_current_user)

@@ -2,10 +2,10 @@
 -- 1. USERS
 -- ============================================================
 INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES
-('John', 'Doe', 'john@example.com', 'hashed_password_1', 'user'),
-('Jane', 'Smith', 'jane@example.com', 'hashed_password_2', 'user'),
-('Alex', 'Johnson', 'alex@example.com', 'hashed_password_3', 'user'),
-('Admin', 'Admin', 'admin@example.com', 'P@ssw0rd', 'admin');
+('John', 'Doe', 'john@example.com', '$2b$12$inmNzaD4QR2dEEgILg29VegJlM4I6kiQAxVx73BU1OoXrnqAZAqPe', 'user'),
+('Jane', 'Smith', 'jane@example.com', '$2b$12$aWBcE6MvU954dkuhfup2wugGCRHgK9P9EtuuDJDsrTFgEFyTuWxGa', 'user'),
+('Alex', 'Johnson', 'alex@example.com', '$2b$12$2x4svyyMaoEbdYJfkCCWvujTmPEBQ1FvgrSwSdFsKs/mCVcqxenjK', 'user'),
+('Admin', 'Admin', 'admin@example.com', '$2b$12$WwMZckocIT8SIWnrSBn1ROOZq6x.yZ/h2ez0gnN4wjXR1zWcD3l6u', 'admin');
 
 -- ============================================================
 -- 2. EXERCISES
