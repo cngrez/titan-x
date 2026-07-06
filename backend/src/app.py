@@ -5,6 +5,7 @@ from database.database import WorkoutDatabase
 from routes.auth import router as auth_router
 from routes.user import router as user_router
 from routes.exercise import router as exercise_router
+from routes.routine import router as routine_router
 
 def create_app():
     app = FastAPI(
@@ -30,7 +31,7 @@ def create_app():
     app.include_router(auth_router, prefix="/api")
     app.include_router(user_router, prefix="/api")
     app.include_router(exercise_router, prefix="/api")
-
+    app.include_router(routine_router, prefix="/api")
     return app
 
 app = create_app()
