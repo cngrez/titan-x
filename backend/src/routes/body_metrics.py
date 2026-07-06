@@ -44,3 +44,50 @@ def get_body_metric_by_id(
         raise HTTPException(status_code=404, detail="Body metric not found")
     return dict(body_metric)
 
+#POST /api/body-metrics - users can create own body metrics
+@router.post("/", response_model=BodyMetricResponse, status_code=201)
+def create_body_metrics(
+    body: CreateBodyMetricsRequest,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM body_metrics WHERE date = DATE('now') AND user_id = ?",
+        (current_user.id,)
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="Body metrics for today already exist")
+    
+    cursor = db.execute(
+        "INSERT INTO body_metrics (weight, body_fat_percentage, muscle_mass, notes, user_id) VALUES (?, ?, ?, ?, ?)",
+        (body.weight, body.body_fat_percentage, body.muscle_mass, body.notes, current_user.id)
+    )
+    body_metric = db.fetch_one(
+        "SELECT * FROM body_metrics WHERE id = ?", (cursor.lastrowid,)
+    )
+    return dict(body_metric)
+
+#PATCH /api/body-metrics/{id} - users can update own body metrics   
+@router.patch("/{body_metric_id}", response_model=BodyMetricResponse)
+def update_body_metrics(
+    body_metric_id: UpdateBodyMetricsRequest,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM body_metrics WHERE id = ? AND user_id = ?",
+        (body_metric_id, current_user.id)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Body metric not found")
+
+    db.execute(
+        "UPDATE body_metrics SET weight = ?, body_fat_percentage = ?, muscle_mass = ?, notes = ? WHERE id = ? AND user_id = ?",
+        (body_metric_id.weight, body_metric_id.body_fat_percentage, body_metric_id.muscle_mass, body_metric_id.notes, body_metric_id, current_user.id)
+    )
+    updated_body_metric = db.fetch_one(
+        "SELECT * FROM body_metrics WHERE id = ?", (body_metric_id,)
+    )
+    return dict(updated_body_metric
+)
+    
