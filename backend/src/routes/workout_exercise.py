@@ -99,25 +99,18 @@ def update_workout_exercise(
         (workout_exercise_id, current_user.id)
     )
     if not existing:
-        raise HTTPException(status_code=404, detail="Workout exercise not found")
-    
-    update_fields = []
-    params = []
-    
-    if body.order_index is not None:
-        update_fields.append("order_index = ?")
-        params.append(body.order_index)
-    if body.notes is not None:
-        update_fields.append("notes = ?")
-        params.append(body.notes)
-    
-    if not update_fields:
+        raise HTTPException(status_code=404, detail="Set log not found")
+
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
         raise HTTPException(status_code=400, detail="No fields to update")
-    
-    params.append(workout_exercise_id)
+
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [workout_exercise_id]
+
     db.execute(
-        f"UPDATE workout_exercise SET {', '.join(update_fields)} WHERE id = ?",
-        tuple(params)
+        f"UPDATE workout_exercise SET {', '.join(set_clause)} WHERE id = ?",
+        tuple(values)
     )
     
     updated_workout_exercise = db.fetch_one(

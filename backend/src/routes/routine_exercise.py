@@ -83,35 +83,18 @@ def update_routine_exercise(
         (routine_exercise_id, current_user.id)
     )
     if not existing:
-        raise HTTPException(status_code=404, detail="Routine exercise not found")
-    
-    # Build dynamic update query
-    update_fields = []
-    params = []
-    
-    if body.order_index is not None:
-        update_fields.append("order_index = ?")
-        params.append(body.order_index)
-    if body.default_sets is not None:
-        update_fields.append("default_sets = ?")
-        params.append(body.default_sets)
-    if body.default_reps is not None:
-        update_fields.append("default_reps = ?")
-        params.append(body.default_reps)
-    if body.default_weight is not None:
-        update_fields.append("default_weight = ?")
-        params.append(body.default_weight)
-    if body.notes is not None:
-        update_fields.append("notes = ?")
-        params.append(body.notes)
-    
-    if not update_fields:
+        raise HTTPException(status_code=404, detail="Set log not found")
+
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
         raise HTTPException(status_code=400, detail="No fields to update")
-    
-    params.append(routine_exercise_id)
+
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [routine_exercise_id]
+
     db.execute(
-        f"UPDATE routine_exercise SET {', '.join(update_fields)} WHERE id = ?",
-        tuple(params)
+        f"UPDATE routine_exercise SET {', '.join(set_clause)} WHERE id = ?",
+        tuple(values)
     )
     
     update_routine_exercise = db.fetch_one("SELECT * FROM routine_exercise WHERE id = ?", (routine_exercise_id,))
