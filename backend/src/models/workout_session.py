@@ -27,13 +27,13 @@ class UpdateWorkoutSessionRequest(BaseModel):
             raise ValueError("Notes must be 500 characters or less")
         return v
     
-    class WorkoutSessionResponse(BaseModel):
-        id: int
-        date: str
-        notes: Optional[str]
-        created_at: str
-        user_id: int
-        routine_id: Optional[int]
+class WorkoutSessionResponse(BaseModel):
+    id: int
+    date: str
+    notes: Optional[str]
+    created_at: str
+    user_id: int
+    routine_id: Optional[int]
         
         
         
