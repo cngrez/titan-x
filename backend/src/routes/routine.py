@@ -29,7 +29,6 @@ def get_routine(
         raise HTTPException(status_code=404, detail="Routine not found")
     return dict(routine)
 
-
 # POST /api/routines — user can create their own routine
 @router.post("/", response_model=RoutineResponse, status_code=201)
 def create_routine(
@@ -66,15 +65,22 @@ def update_routine(
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Routine not found")
+    
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [routine_id]
 
     db.execute(
-        "UPDATE routine SET name = ?, description = ? WHERE id = ? AND user_id = ?",
-        (body.name, body.description, routine_id, current_user.id)
+        f"UPDATE routine SET {set_clause} WHERE id = ? AND user_id = ?",
+        values + [current_user.id]
     )
-    routine = db.fetch_one(
-        "SELECT * FROM routine WHERE id = ?", (routine_id,)
+    updated_routine = db.fetch_one(
+        "SELECT * FROM routine WHERE id = ? AND user_id = ?", (routine_id, current_user.id)
     )
-    return dict(routine)
+    return dict(updated_routine)
 
 #DELETE /api/routines/{id} — user can delete their own routine
 @router.delete("/{routine_id}")
