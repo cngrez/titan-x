@@ -44,6 +44,35 @@ def get_body_metric_by_id(
         raise HTTPException(status_code=404, detail="Body metric not found")
     return dict(body_metric)
 
+#GET /api/body-metrics/date/{date} — get body metric by date
+@router.get("/date/{date}", response_model=BodyMetricResponse)
+def get_body_metric_by_date(
+    date: str,  # Format: YYYY-MM-DD
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    body_metric = db.fetch_one(
+        "SELECT * FROM body_metrics WHERE date = ? AND user_id = ?",
+        (date, current_user.id)
+    )
+    if not body_metric:
+        raise HTTPException(status_code=404, detail="Body metric not found for the specified date")
+    return dict(body_metric)
+
+#GET /api/body-metrics/range?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD — get body metrics in a date range
+@router.get("/range", response_model=list[BodyMetricResponse])
+def get_body_metrics_in_range(
+    start_date: str,  # Format: YYYY-MM-DD
+    end_date: str,    # Format: YYYY-MM-DD
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    body_metrics = db.fetch_all(
+        "SELECT * FROM body_metrics WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date ASC",
+        (start_date, end_date, current_user.id)
+    )
+    return [dict(bm) for bm in body_metrics]
+
 #POST /api/body-metrics - users can create own body metrics
 @router.post("/", response_model=BodyMetricResponse, status_code=201)
 def create_body_metrics(
