@@ -76,4 +76,20 @@ def update_routine(
     )
     return dict(routine)
 
-
+#DELETE /api/routines/{id} — user can delete their own routine
+@router.delete("/{routine_id}")
+def delete_routine(
+    routine_id: int,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM routine WHERE id = ? AND user_id = ?", (routine_id, current_user.id)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Routine not found")
+    
+    db .execute(
+        "DELETE FROM routine WHERE id = ? AND user_id = ?", (routine_id, current_user.id)
+    )
+    return {"message": "Routine deleted"}
