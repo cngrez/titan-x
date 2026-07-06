@@ -85,3 +85,4 @@ def delete_workout_session(
     db.execute(
         "DELETE FROM workout_sessions WHERE id = ? AND user_id = ?", (workout_session_id, current_user.id)
     )
+    return {"message": "Workout-Session deleted"}

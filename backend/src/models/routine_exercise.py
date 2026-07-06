@@ -1,19 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
-# CREATE TABLE IF NOT EXISTS routine_exercise(
-#     id INTEGER PRIMARY KEY AUTOINCREMENT,
-#     order_index INTEGER NOT NULL,
-#     default_sets INTEGER NOT NULL,  
-#     default_reps INTEGER NOT NULL,
-#     default_weight DECIMAL(5,2) NOT NULL,
-#     notes TEXT, 
-#     exercise_id INTEGER NOT NULL,
-#     routine_id INTEGER NOT NULL,
-#     FOREIGN KEY(exercise_id) REFERENCES exercise(id) ON DELETE CASCADE,
-#     FOREIGN KEY(routine_id) REFERENCES routine(id) ON DELETE CASCADE
-# );
-
 class CreateRoutineExerciseRequest(BaseModel):
     order_index: int = Field(..., gt=0, description="Order of the exercise in the routine")
     default_sets: int = Field(..., gt=0, description="Default number of sets for the exercise")
