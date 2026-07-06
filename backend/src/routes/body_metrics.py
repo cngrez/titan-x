@@ -70,7 +70,8 @@ def create_body_metrics(
 #PATCH /api/body-metrics/{id} - users can update own body metrics   
 @router.patch("/{body_metric_id}", response_model=BodyMetricResponse)
 def update_body_metrics(
-    body_metric_id: UpdateBodyMetricsRequest,
+    body_metric_id: int,
+    body: UpdateBodyMetricsRequest,
     current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
@@ -83,7 +84,7 @@ def update_body_metrics(
 
     db.execute(
         "UPDATE body_metrics SET weight = ?, body_fat_percentage = ?, muscle_mass = ?, notes = ? WHERE id = ? AND user_id = ?",
-        (body_metric_id.weight, body_metric_id.body_fat_percentage, body_metric_id.muscle_mass, body_metric_id.notes, body_metric_id, current_user.id)
+        (body.weight, body.body_fat_percentage, body.muscle_mass, body.notes, body_metric_id, current_user.id)
     )
     updated_body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE id = ?", (body_metric_id,)

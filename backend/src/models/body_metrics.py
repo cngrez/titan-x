@@ -1,7 +1,7 @@
-from pydantic import BaseMode, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
-class CreateBodyMetricsRequest(BaseMode): 
+class CreateBodyMetricsRequest(BaseModel): 
     weight: float = Field(..., gt=0, description="Weight in kilograms")
     body_fat_percentage: Optional[float] = Field(None, ge=0, le=100, description="Body fat percentage")
     muscle_mass: Optional[float] = Field(None, ge=0, le=100, description="Muscle mass percentage")
@@ -21,7 +21,7 @@ class CreateBodyMetricsRequest(BaseMode):
             raise ValueError("Notes must be 500 characters or less")
         return v
     
-class UpdateBodyMetricsRequest(BaseMode): 
+class UpdateBodyMetricsRequest(BaseModel): 
     weight: float = Field(..., gt=0, description="Weight in kilograms")
     body_fat_percentage: Optional[float] = Field(None, ge=0, le=100, description="Body fat percentage")
     muscle_mass: Optional[float] = Field(None, ge=0, le=100, description="Muscle mass percentage")
@@ -41,7 +41,7 @@ class UpdateBodyMetricsRequest(BaseMode):
             raise ValueError("Notes must be 500 characters or less")
         return v
     
-class BodyMetricResponse(BaseMode):
+class BodyMetricResponse(BaseModel):
     id: int
     weight: float
     body_fat_percentage: Optional[float]
