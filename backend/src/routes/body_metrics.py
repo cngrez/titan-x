@@ -91,3 +91,22 @@ def update_body_metrics(
     return dict(updated_body_metric
 )
     
+#DELETE /api/body-metrics/{id} - users can delete own body metrics
+@router.delete("/{body_metric_id}", status_code=204)
+def delete_body_metrics(
+    body_metric_id: int,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM body_metrics WHERE id = ? AND user_id = ?",
+        (body_metric_id, current_user.id)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Body metric not found")
+
+    db.execute(
+        "DELETE FROM body_metrics WHERE id = ? AND user_id = ?",
+        (body_metric_id, current_user.id)
+    )
+    return
