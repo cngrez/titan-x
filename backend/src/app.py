@@ -8,6 +8,7 @@ from routes.exercise import router as exercise_router
 from routes.routine import router as routine_router
 from routes.body_metrics import router as body_metrics_router
 from routes.workout_session import router as workout_session_router
+from routes.routine_exercise import router as routine_exercise_router
 
 def create_app():
     app = FastAPI(
@@ -36,6 +37,7 @@ def create_app():
     app.include_router(routine_router, prefix="/api")
     app.include_router(body_metrics_router, prefix="/api")
     app.include_router(workout_session_router, prefix="/api")
+    app.include_router(routine_exercise_router, prefix="/api")
     
     return app
 
