@@ -109,16 +109,24 @@ def update_body_metrics(
         (body_metric_id, current_user.id)
     )
     if not existing:
-        raise HTTPException(status_code=404, detail="Body metric not found")
+        raise HTTPException(status_code=404, detail="Set log not found")
 
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [body_metric_id]
+    
     db.execute(
-        "UPDATE body_metrics SET weight = ?, body_fat_percentage = ?, muscle_mass = ?, notes = ? WHERE id = ? AND user_id = ?",
-        (body.weight, body.body_fat_percentage, body.muscle_mass, body.notes, body_metric_id, current_user.id)
+        f"UPDATE body_metrics SET {set_clause} WHERE id = ? AND user_id = ?",
+        values + [current_user.id]
     )
-    updated_body_metric = db.fetch_one(
-        "SELECT * FROM body_metrics WHERE id = ?", (body_metric_id,)
+    update_body_metrics = db.fetch_one(
+        "SELECT * FROM body_metrics WHERE id = ? AND user_id = ?",
+        (body_metric_id, current_user.id)
     )
-    return dict(updated_body_metric)
+    return dict(update_body_metrics)
     
 #DELETE /api/body-metrics/{id} - users can delete own body metrics
 @router.delete("/{body_metric_id}", status_code=204)
