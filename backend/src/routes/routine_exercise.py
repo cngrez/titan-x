@@ -15,7 +15,7 @@ def get_routine_exercises(
 ):
     routine = db.fetch_one(
         "SELECT * FROM routine WHERE id = ? AND (user_id = ? OR is_template = TRUE)",
-        (routine_id, current_user.id)
+        (routine_id, current_user["id"])
     )
     if not routine:
         raise HTTPException(status_code=404, detail="Routine not found")
@@ -24,7 +24,7 @@ def get_routine_exercises(
     exercises = db.fetch_all(
         """SELECT re.*, e.name, e.category, e.muscle_group 
            FROM routine_exercise re
-           JOIN exercise e ON re.exercise_id = e.id
+           JOIN exercise e ON re.exercise_id = e["id"]
            WHERE re.routine_id = ?
            ORDER BY re.order_index ASC""",
         (routine_id,)
@@ -41,7 +41,7 @@ def add_exercise_to_routine(
 ):
     routine = db.fetch_one(
         "SELECT * FROM routine WHERE id = ? AND user_id = ?",
-        (routine_id, current_user.id)
+        (routine_id, current_user["id"])
     )
     if not routine:
         raise HTTPException(status_code=404, detail="Routine not found or not yours")
@@ -78,9 +78,9 @@ def update_routine_exercise(
     
     existing = db.fetch_one(
         """SELECT re.* FROM routine_exercise re
-           JOIN routine r ON re.routine_id = r.id
-           WHERE re.id = ? AND r.user_id = ?""",
-        (routine_exercise_id, current_user.id)
+           JOIN routine r ON re.routine_id = r["id"]
+           WHERE re["id"] = ? AND r.user_id = ?""",
+        (routine_exercise_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Set log not found")
@@ -108,10 +108,10 @@ def remove_exercise_from_routine(
     db: WorkoutDatabase = Depends(get_db)
 ):
     existing = db.fetch_one(
-        """SELECT re.id FROM routine_exercise re
-           JOIN routine r ON re.routine_id = r.id
-           WHERE re.id = ? AND r.user_id = ?""",
-        (routine_exercise_id, current_user.id)
+        """SELECT re["id"] FROM routine_exercise re
+           JOIN routine r ON re.routine_id = r["id"]
+           WHERE re["id"] = ? AND r.user_id = ?""",
+        (routine_exercise_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Routine exercise not found")
