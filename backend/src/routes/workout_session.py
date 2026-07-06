@@ -59,10 +59,17 @@ def update_workout_session(
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Workout session not found")
+    
+    fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
 
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [workout_session_id]
+ 
     db.execute(
-        "UPDATE workout_sessions SET date = ?, notes = ?, routine_id = ? WHERE id = ? AND user_id = ?",
-        (body.date, body.notes, body.routine_id, workout_session_id, current_user.id)
+        f"UPDATE workout_sessions SET {set_clause} WHERE id = ? AND user_id = ?",
+        tuple(values + [current_user.id])
     )
     updated_workout_session = db.fetch_one(
         "SELECT * FROM workout_sessions WHERE id = ?", (workout_session_id,)
