@@ -12,7 +12,7 @@ def get_all_body_metrics(
     current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
-    body_metrics = db.fetch_all("SELECT * FROM body_metrics WHERE user_id = ?", (current_user.id,))
+    body_metrics = db.fetch_all("SELECT * FROM body_metrics WHERE user_id = ?", (current_user["id"],))
     return [dict(bm) for bm in body_metrics]
 
 #GET /api/body-metrics/latest — get the latest body metric
@@ -23,7 +23,7 @@ def get_latest_body_metric(
 ):
     body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE user_id = ? ORDER BY date DESC LIMIT 1",
-        (current_user.id,)
+        (current_user["id"],)
     )
     if not body_metric:
         raise HTTPException(status_code=404, detail="No body metrics found")
@@ -38,7 +38,7 @@ def get_body_metric_by_id(
 ):
     body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE id = ? AND user_id = ?",
-        (body_metric_id, current_user.id)
+        (body_metric_id, current_user["id"])
     )
     if not body_metric:
         raise HTTPException(status_code=404, detail="Body metric not found")
@@ -53,7 +53,7 @@ def get_body_metric_by_date(
 ):
     body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE date = ? AND user_id = ?",
-        (date, current_user.id)
+        (date, current_user["id"])
     )
     if not body_metric:
         raise HTTPException(status_code=404, detail="Body metric not found for the specified date")
@@ -69,7 +69,7 @@ def get_body_metrics_in_range(
 ):
     body_metrics = db.fetch_all(
         "SELECT * FROM body_metrics WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date ASC",
-        (start_date, end_date, current_user.id)
+        (start_date, end_date, current_user["id"])
     )
     return [dict(bm) for bm in body_metrics]
 
@@ -81,15 +81,15 @@ def create_body_metrics(
     db: WorkoutDatabase = Depends(get_db)
 ):
     existing = db.fetch_one(
-        "SELECT id FROM body_metrics WHERE date = DATE('now') AND user_id = ?",
-        (current_user.id,)
+        "SELECT id FROM body_metrics WHERE user_id = ?",
+        (current_user["id"],)
     )
     if existing:
         raise HTTPException(status_code=400, detail="Body metrics for today already exist")
     
     cursor = db.execute(
         "INSERT INTO body_metrics (weight, body_fat_percentage, muscle_mass, notes, user_id) VALUES (?, ?, ?, ?, ?)",
-        (body.weight, body.body_fat_percentage, body.muscle_mass, body.notes, current_user.id)
+        (body.weight, body.body_fat_percentage, body.muscle_mass, body.notes, current_user["id"])
     )
     body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE id = ?", (cursor.lastrowid,)
@@ -106,7 +106,7 @@ def update_body_metrics(
 ):
     existing = db.fetch_one(
         "SELECT id FROM body_metrics WHERE id = ? AND user_id = ?",
-        (body_metric_id, current_user.id)
+        (body_metric_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Set log not found")
@@ -120,11 +120,11 @@ def update_body_metrics(
     
     db.execute(
         f"UPDATE body_metrics SET {set_clause} WHERE id = ? AND user_id = ?",
-        values + [current_user.id]
+        values + [current_user["id"]]
     )
     update_body_metrics = db.fetch_one(
         "SELECT * FROM body_metrics WHERE id = ? AND user_id = ?",
-        (body_metric_id, current_user.id)
+        (body_metric_id, current_user["id"])
     )
     return dict(update_body_metrics)
     
@@ -137,13 +137,13 @@ def delete_body_metrics(
 ):
     existing = db.fetch_one(
         "SELECT id FROM body_metrics WHERE id = ? AND user_id = ?",
-        (body_metric_id, current_user.id)
+        (body_metric_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Body metric not found")
 
     db.execute(
         "DELETE FROM body_metrics WHERE id = ? AND user_id = ?",
-        (body_metric_id, current_user.id)
+        (body_metric_id, current_user["id"])
     )
     return
