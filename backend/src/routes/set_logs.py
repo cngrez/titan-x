@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models.set_log import CreateSetLogRequest, UpdateSetLogRequest, SetLogResponse
+from models.set_logs import CreateSetLogRequest, UpdateSetLogRequest, SetLogResponse
 from dependencies.db import get_db
 from dependencies.auth import get_current_user
 from database.database import WorkoutDatabase
