@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.routine import CreateRoutineRequest, UpdateRoutineRequest, RoutineResponse
 from dependencies.db import get_db
-from dependencies.auth import get_current_user, get_current_admin_user
+from dependencies.auth import get_current_user
 from database.database import WorkoutDatabase
 
 router = APIRouter(prefix="/routines", tags=["routines"])
