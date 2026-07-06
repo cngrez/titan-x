@@ -118,8 +118,7 @@ def update_body_metrics(
     updated_body_metric = db.fetch_one(
         "SELECT * FROM body_metrics WHERE id = ?", (body_metric_id,)
     )
-    return dict(updated_body_metric
-)
+    return dict(updated_body_metric)
     
 #DELETE /api/body-metrics/{id} - users can delete own body metrics
 @router.delete("/{body_metric_id}", status_code=204)

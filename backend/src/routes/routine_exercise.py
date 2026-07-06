@@ -60,13 +60,12 @@ def add_exercise_to_routine(
         (body.order_index, body.default_sets, body.default_reps, 
          body.default_weight, body.notes, body.exercise_id, routine_id)
     )
-    db.commit()
     
-    new_entry = db.fetch_one(
+    routine_exercises = db.fetch_one(
         "SELECT * FROM routine_exercise WHERE id = ?",
         (cursor.lastrowid,)
     )
-    return dict(new_entry)
+    return dict(routine_exercises)
 
 #PATCH /api/routine-exercises/{routine_exercise_id} — user can update their own routine exercise
 @router.patch("/routine-exercises/{routine_exercise_id}", response_model=RoutineExerciseResponse)
@@ -114,10 +113,9 @@ def update_routine_exercise(
         f"UPDATE routine_exercise SET {', '.join(update_fields)} WHERE id = ?",
         tuple(params)
     )
-    db.commit()
     
-    updated = db.fetch_one("SELECT * FROM routine_exercise WHERE id = ?", (routine_exercise_id,))
-    return dict(updated)
+    update_routine_exercise = db.fetch_one("SELECT * FROM routine_exercise WHERE id = ?", (routine_exercise_id,))
+    return dict(update_routine_exercise)
 
 #DELETE /api/routine-exercises/{routine_exercise_id} — user can remove an exercise from their own routine
 @router.delete("/routine-exercises/{routine_exercise_id}", status_code=204)

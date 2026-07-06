@@ -74,8 +74,8 @@ def update_exercise(
 
     db.execute(f"UPDATE exercise SET {set_clause} WHERE id = ?", tuple(values))
 
-    updated = db.fetch_one("SELECT * FROM exercise WHERE id = ?", (exercise_id,))
-    return dict(updated)
+    updated_exercise = db.fetch_one("SELECT * FROM exercise WHERE id = ?", (exercise_id,))
+    return dict(updated_exercise)
 
 # DELETE /api/exercises/{id} — admin only
 @router.delete("/{exercise_id}")
