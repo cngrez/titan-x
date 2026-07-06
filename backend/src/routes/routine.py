@@ -52,3 +52,28 @@ def create_routine(
     )
     return dict(routine)
 
+
+#PATCH /api/routines/{id} — user can update their own routine
+@router.patch("/{routine_id}", response_model=RoutineResponse)
+def update_routine(
+    routine_id: int,
+    body: UpdateRoutineRequest,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    existing = db.fetch_one(
+        "SELECT id FROM routine WHERE id = ? AND user_id = ?", (routine_id, current_user.id)
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Routine not found")
+
+    db.execute(
+        "UPDATE routine SET name = ?, description = ? WHERE id = ? AND user_id = ?",
+        (body.name, body.description, routine_id, current_user.id)
+    )
+    routine = db.fetch_one(
+        "SELECT * FROM routine WHERE id = ?", (routine_id,)
+    )
+    return dict(routine)
+
+
