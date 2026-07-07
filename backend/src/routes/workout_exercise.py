@@ -15,7 +15,7 @@ def get_workout_exercises(
 ):
     workout = db.fetch_one(
         "SELECT id FROM workout_session WHERE id = ? AND user_id = ?",
-        (workout_id, current_user.id)
+        (workout_id, current_user["id"])
     )
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
@@ -53,7 +53,7 @@ def add_exercise_to_workout(
 ):
     workout = db.fetch_one(
         "SELECT id FROM workout_session WHERE id = ? AND user_id = ?",
-        (workout_id, current_user.id)
+        (workout_id, current_user["id"])
     )
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
@@ -96,7 +96,7 @@ def update_workout_exercise(
         """SELECT we.* FROM workout_exercise we
            JOIN workout_session ws ON we.workout_id = ws.id
            WHERE we.id = ? AND ws.user_id = ?""",
-        (workout_exercise_id, current_user.id)
+        (workout_exercise_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Set log not found")
@@ -109,8 +109,8 @@ def update_workout_exercise(
     values = list(fields.values()) + [workout_exercise_id]
 
     db.execute(
-        f"UPDATE workout_exercise SET {', '.join(set_clause)} WHERE id = ?",
-        tuple(values)
+        f"UPDATE workout_exercise SET {set_clause} WHERE id = ?",
+        tuple(values) 
     )
     
     updated_workout_exercise = db.fetch_one(
@@ -130,7 +130,7 @@ def delete_workout_exercise(
         """SELECT we.* FROM workout_exercise we
            JOIN workout_session ws ON we.workout_id = ws.id
            WHERE we.id = ? AND ws.user_id = ?""",
-        (workout_exercise_id, current_user.id)
+        (workout_exercise_id, current_user["id"])
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Workout exercise not found")

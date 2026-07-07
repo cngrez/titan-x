@@ -40,8 +40,8 @@ def test_database():
     # 4. Test execute (INSERT)
     print("\n Testing execute()...")
     cursor = db.execute(
-    "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)", 
-    ("Test User", "test@example.com", "test_password_123")
+    "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)", 
+    ("Test User", "test@example.com", "test_password_123", "user")
     )
     new_id = cursor.lastrowid
     print(f"   ✅ Inserted user with ID: {new_id}")

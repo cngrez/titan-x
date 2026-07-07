@@ -25,7 +25,7 @@ def get_routine_exercises(
            FROM routine_exercise re
            JOIN exercise e ON re.exercise_id = e.id
            WHERE re.routine_id = ?
-           ORDER BY re.order_index ASC""",  # 👈 e["id"] → e.id (SQL not Python)
+           ORDER BY re.order_index ASC""", 
         (routine_id,)
     )
     return [dict(ex) for ex in exercises]

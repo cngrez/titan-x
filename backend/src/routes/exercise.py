@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.exercise import CreateExerciseRequest, UpdateExerciseRequest, ExerciseResponse
 from dependencies.db import get_db
-from dependencies.auth import get_current_user, get_current_admin_user
+from dependencies.auth import get_current_user
 from database.database import WorkoutDatabase
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
@@ -29,11 +29,11 @@ def get_exercise(
         raise HTTPException(status_code=404, detail="Exercise not found")
     return dict(exercise)
 
-# POST /api/exercises — admin only
+# POST /api/exercises 
 @router.post("/", response_model=ExerciseResponse, status_code=201)
 def create_exercise(
     body: CreateExerciseRequest,
-    current_user=Depends(get_current_admin_user),
+    current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
     existing = db.fetch_one(
@@ -51,12 +51,12 @@ def create_exercise(
     )
     return dict(exercise)
 
-# PATCH /api/exercises/{id} — admin only
+# PATCH /api/exercises/{id} 
 @router.patch("/{exercise_id}", response_model=ExerciseResponse)
 def update_exercise(
     exercise_id: int,
     body: UpdateExerciseRequest,
-    current_user=Depends(get_current_admin_user),
+    current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
     existing = db.fetch_one(
@@ -81,7 +81,7 @@ def update_exercise(
 @router.delete("/{exercise_id}")
 def delete_exercise(
     exercise_id: int,
-    current_user=Depends(get_current_admin_user),
+    current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
     existing = db.fetch_one(
