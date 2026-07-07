@@ -43,7 +43,8 @@ const MAX_PR_EXERCISES = 4
 export default function HomeScreen() {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const { user, accessToken } = useAuthStore()
+  const user = useAuthStore((state) => state.user)
+  const accessToken = useAuthStore((state) => state.accessToken)
   const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([])
   const [showPicker, setShowPicker] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -176,6 +177,24 @@ export default function HomeScreen() {
             {user?.first_name?.[0]}{user?.last_name?.[0]}
           </Text>
         </Pressable>
+      </View>
+
+    {/* START WORKOUT CARD - NEW */}
+    <View style={styles.startWorkoutSection}>
+        <View style={styles.startWorkoutCard}>
+          <View>
+            <Text style={styles.startWorkoutTitle}>Ready to train? 💪</Text>
+            <Text style={styles.startWorkoutSubtitle}>
+              Start a new workout session
+            </Text>
+          </View>
+          <Pressable
+            style={styles.startWorkoutButton}
+            onPress={() => router.push("/routine")}
+          >
+            <Text style={styles.startWorkoutButtonText}>Start</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* PR Section */}
@@ -343,6 +362,50 @@ const styles = StyleSheet.create({
   },
   profileInitials: { color: "#fff", fontWeight: "700", fontSize: 16 },
 
+    // START WORKOUT CARD - NEW STYLES
+    startWorkoutSection: {
+        paddingHorizontal: 24,
+        marginBottom: 32,
+      },
+      startWorkoutCard: {
+        backgroundColor: "#3b82f6",
+        borderRadius: 16,
+        padding: 20,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        shadowColor: "#3b82f6",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+      startWorkoutTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#ffffff",
+      },
+      startWorkoutSubtitle: {
+        fontSize: 14,
+        color: "#bfdbfe",
+        marginTop: 2,
+      },
+      startWorkoutButton: {
+        backgroundColor: "#ffffff",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+      },
+      startWorkoutButtonText: {
+        color: "#3b82f6",
+        fontSize: 16,
+        fontWeight: "700",
+      },
   // sections
   section: { paddingHorizontal: 24, marginBottom: 32 },
   sectionHeader: {
