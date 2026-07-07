@@ -14,12 +14,15 @@ import { useMutation } from "@tanstack/react-query"
 import { useAuthStore } from "@/stores/authStore"
 import { apiClient } from "@/lib/apiClient"
 
-interface LoginFormValues {
+interface RegisterFormValues {
+  first_name: string
+  last_name: string
   email: string
   password: string
+  confirmPassword: string
 }
 
-interface LoginResponse {
+interface RegisterResponse {
   access_token: string
   user: {
     id: number
@@ -30,23 +33,33 @@ interface LoginResponse {
   }
 }
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const router = useRouter()
   const setAuth = useAuthStore((state) => state.setAuth)
 
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm<LoginFormValues>({
-    defaultValues: { email: "", password: "" },
+  } = useForm<RegisterFormValues>({
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   })
 
-  const { mutate: login, isPending, error } = useMutation({
-    mutationFn: (values: LoginFormValues) =>
-      apiClient.post<LoginResponse>("/api/auth/login", values, {
-        requiresAuth: false,
-      }),
+  const { mutate: register, isPending, error } = useMutation({
+    mutationFn: (values: RegisterFormValues) =>
+      apiClient.post<RegisterResponse>("/api/auth/register", {
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        password: values.password,
+      }, { requiresAuth: false }),
     onSuccess: (data) => {
       setAuth(data.user, data.access_token)
       router.replace("/(tabs)")
@@ -62,14 +75,60 @@ export default function LoginScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <Text style={styles.title}>Create account</Text>
+        <Text style={styles.subtitle}>Start tracking your workouts</Text>
 
         {error && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorBannerText}>{error.message}</Text>
           </View>
         )}
+
+        <Controller
+          control={control}
+          name="first_name"
+          rules={{ required: "First name is required" }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.field}>
+              <Text style={styles.label}>First name</Text>
+              <TextInput
+                style={[styles.input, errors.first_name && styles.inputError]}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                placeholder="John"
+                autoComplete="given-name"
+                textContentType="givenName"
+              />
+              {errors.first_name && (
+                <Text style={styles.fieldError}>{errors.first_name.message}</Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="last_name"
+          rules={{ required: "Last name is required" }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.field}>
+              <Text style={styles.label}>Last name</Text>
+              <TextInput
+                style={[styles.input, errors.last_name && styles.inputError]}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                placeholder="Doe"
+                autoComplete="family-name"
+                textContentType="familyName"
+              />
+              {errors.last_name && (
+                <Text style={styles.fieldError}>{errors.last_name.message}</Text>
+              )}
+            </View>
+          )}
+        />
 
         <Controller
           control={control}
@@ -102,7 +161,10 @@ export default function LoginScreen() {
         <Controller
           control={control}
           name="password"
-          rules={{ required: "Password is required" }}
+          rules={{
+            required: "Password is required",
+            minLength: { value: 6, message: "Password must be at least 6 characters" },
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <View style={styles.field}>
               <Text style={styles.label}>Password</Text>
@@ -113,8 +175,8 @@ export default function LoginScreen() {
                 value={value}
                 placeholder="••••••••"
                 secureTextEntry
-                autoComplete="current-password"
-                textContentType="password"
+                autoComplete="new-password"
+                textContentType="newPassword"
               />
               {errors.password && (
                 <Text style={styles.fieldError}>{errors.password.message}</Text>
@@ -123,20 +185,48 @@ export default function LoginScreen() {
           )}
         />
 
+        <Controller
+          control={control}
+          name="confirmPassword"
+          rules={{
+            required: "Please confirm your password",
+            validate: (value) =>
+              value === watch("password") || "Passwords do not match",
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.field}>
+              <Text style={styles.label}>Confirm password</Text>
+              <TextInput
+                style={[styles.input, errors.confirmPassword && styles.inputError]}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                placeholder="••••••••"
+                secureTextEntry
+                autoComplete="new-password"
+                textContentType="newPassword"
+              />
+              {errors.confirmPassword && (
+                <Text style={styles.fieldError}>{errors.confirmPassword.message}</Text>
+              )}
+            </View>
+          )}
+        />
+
         <Pressable
-          onPress={handleSubmit((v) => login(v))}
+          onPress={handleSubmit((v) => register(v))}
           style={[styles.button, isPending && styles.buttonLoading]}
           disabled={isPending}
         >
           <Text style={styles.buttonText}>
-            {isPending ? "Signing in..." : "Sign in"}
+            {isPending ? "Creating account..." : "Create account"}
           </Text>
         </Pressable>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Link href="/auth/register">
-            <Text style={styles.footerLinkText}>Register</Text>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <Link href="/login">
+            <Text style={styles.footerLinkText}>Sign in</Text>
           </Link>
         </View>
       </ScrollView>

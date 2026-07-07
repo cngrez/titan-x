@@ -19,7 +19,7 @@ export function useLogout() {
       clearAuth()
       await SecureStore.deleteItemAsync("auth")
       queryClient.clear()
-      router.replace("/auth/login")
+      router.replace("/login")
     }
   }
 
