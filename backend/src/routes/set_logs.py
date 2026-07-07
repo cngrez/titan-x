@@ -6,6 +6,33 @@ from database.database import WorkoutDatabase
 
 router = APIRouter(prefix="/set-logs", tags=["set logs"])
 
+# GET /api/set-logs/summary — get summary of all set logs for the current user
+# Get workout summaries with:
+# Routine name
+# Total volume (sum of weight * reps)
+# Exercise count
+
+@router.get("/summary")
+def get_set_logs_summary(
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    summary = db.fetch_all(           
+           """SELECT we.notes as notes, r.name as routine_name,
+                SUM(sl.weight * sl.reps) as total_volume,
+                COUNT(DISTINCT we.exercise_id) as exercise_count
+              FROM workout_session ws
+                JOIN workout_exercise we ON ws.id = we.workout_id
+                JOIN set_logs sl ON we.id = sl.workout_exercise_id
+                JOIN exercise e ON we.exercise_id = e.id
+                JOIN routine r ON ws.routine_id = r.id
+                WHERE ws.user_id = ?
+                GROUP BY we.id, r.name, e.name
+                  """,
+        (current_user["id"],)
+    )
+    return [dict(s) for s in summary]
+
 # GET /api/set-logs/pr/{exercise_id} — get PR for a specific exercise
 @router.get("/pr/{exercise_id}")
 def get_pr_for_exercise(
