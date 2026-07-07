@@ -6,6 +6,28 @@ from database.database import WorkoutDatabase
 
 router = APIRouter(prefix="/set-logs", tags=["set logs"])
 
+# GET /api/set-logs/pr/{exercise_id} — get PR for a specific exercise
+@router.get("/pr/{exercise_id}")
+def get_pr_for_exercise(
+    exercise_id: int,
+    current_user=Depends(get_current_user),
+    db: WorkoutDatabase = Depends(get_db)
+):
+    pr = db.fetch_one(
+        """SELECT sl.weight, sl.reps, sl.created_at, e.name
+           FROM set_logs sl
+           JOIN workout_exercise we ON sl.workout_exercise_id = we.id
+           JOIN workout_session ws ON we.workout_id = ws.id
+           JOIN exercise e ON we.exercise_id = e.id
+           WHERE ws.user_id = ? AND we.exercise_id = ?
+           ORDER BY sl.weight DESC
+           LIMIT 1""",
+        (current_user["id"], exercise_id)
+    )
+    if not pr:
+        return {"weight": None, "reps": None, "created_at": None, "name": None}
+    return dict(pr)
+
 # GET /api/set-logs/{workout_exercise_id} — get all sets for a workout exercise
 @router.get("/{workout_exercise_id}", response_model=list[SetLogResponse])
 def get_set_logs(
