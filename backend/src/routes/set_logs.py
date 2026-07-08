@@ -13,22 +13,24 @@ router = APIRouter(prefix="/set-logs", tags=["set logs"])
 # Exercise count
 
 @router.get("/summary")
-def get_set_logs_summary(
+def get_workout_summaries(
     current_user=Depends(get_current_user),
     db: WorkoutDatabase = Depends(get_db)
 ):
-    summary = db.fetch_all(           
-           """SELECT we.notes as notes, r.name as routine_name, sl.created_at as date, sl.id as set_log_id, e.name as exercise_name,
-                SUM(sl.weight * sl.reps) as total_volume,
-                COUNT(DISTINCT we.exercise_id) as exercise_count
-              FROM workout_session ws
-                JOIN workout_exercise we ON ws.id = we.workout_id
-                JOIN set_logs sl ON we.id = sl.workout_exercise_id
-                JOIN exercise e ON we.exercise_id = e.id
-                JOIN routine r ON ws.routine_id = r.id
-                WHERE ws.user_id = ?
-                GROUP BY we.id, r.name, e.name
-                  """,
+    summary = db.fetch_all(
+        """SELECT 
+             ws.id,
+             ws.date,
+             ws.notes as workout_name,
+             COUNT(DISTINCT we.id) as exercise_count,
+             COALESCE(SUM(sl.weight * sl.reps), 0) as total_volume
+           FROM workout_session ws
+           LEFT JOIN routine r ON ws.routine_id = r.id
+           LEFT JOIN workout_exercise we ON we.workout_id = ws.id
+           LEFT JOIN set_logs sl ON sl.workout_exercise_id = we.id
+           WHERE ws.user_id = ?
+           GROUP BY ws.id
+           ORDER BY ws.date DESC""",
         (current_user["id"],)
     )
     return [dict(s) for s in summary]

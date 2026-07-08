@@ -84,6 +84,7 @@ def add_exercise_to_workout(
     )
     return dict(workout_exercise)
 
+
 #PATCH /api/workout-exercises/{workout_exercise_id} — user can update their own workout exercise
 @router.patch("/workout-exercises/{workout_exercise_id}", response_model=WorkoutExerciseResponse)
 def update_workout_exercise(
