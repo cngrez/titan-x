@@ -220,7 +220,7 @@ export default function HomeScreen() {
                 <Pressable 
                   key={exercise.id} 
                   style={styles.prCard}
-                  onPress={() => router.push(`/exercise/${exercise.id}`)}
+                  onPress={() => router.push(`/progress`)}
                 >
                   <Text style={styles.prExerciseName}>{exercise.name}</Text>
                   {pr?.weight ? (
