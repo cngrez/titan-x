@@ -15,14 +15,13 @@ import { apiClient } from "@/lib/apiClient";
 
 // Types
 interface WorkoutSummary {
-    notes: string
-    routine_name: string
+    id: number            
     date: string
-    set_log_id: number
-    exercise_name: number
+    notes: string | null
+    routine_name: string | null
     total_volume: number
     exercise_count: number
-}
+  }
 
 export default function HistoryScreen() {
     const router = useRouter();
@@ -102,7 +101,7 @@ export default function HistoryScreen() {
 
             <FlatList
                 data={workoutSummaries}
-                keyExtractor={(item) => item.set_log_id.toString()}
+                keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
                 refreshControl={

@@ -33,7 +33,7 @@ interface PR {
 interface WorkoutSummary {
   id: number
   date: string
-  routine_name: string | null
+  workout_name: string | null
   total_volume: number
   exercise_count: number
 }
@@ -151,7 +151,7 @@ export default function HomeScreen() {
 
   // Helper to get workout display name
   const getWorkoutName = (workout: WorkoutSummary) => {
-    return workout.routine_name || "Custom Workout"
+    return workout.workout_name || "Custom Workout"
   }
 
   return (
@@ -244,7 +244,7 @@ export default function HomeScreen() {
       {/* Recent Workouts Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Workouts 💪</Text>
+          <Text style={styles.sectionTitle}>Recent Sessions 💪</Text>
           <Pressable onPress={() => router.push("/history")}>
             <Text style={styles.editButton}>See all</Text>
           </Pressable>
