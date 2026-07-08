@@ -18,7 +18,7 @@ interface WorkoutSummary {
     id: number            
     date: string
     notes: string | null
-    routine_name: string | null
+    workout_name: string | null
     total_volume: number
     exercise_count: number
   }
@@ -44,7 +44,7 @@ export default function HistoryScreen() {
 
     // Helper: Get workout display name
     const getWorkoutName = (workout: WorkoutSummary) => {
-        return workout.routine_name || "Custom Workout";
+        return workout.workout_name || "Custom Workout";
     };
 
     // Helper: Format date

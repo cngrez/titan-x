@@ -104,7 +104,7 @@ import {
                 }
             })
             )
-        
+        ``
         // Turn array into a map: { exerciseId: sets[] }
         return results.reduce((acc, { exerciseId, sets }) => {
           acc[exerciseId] = sets
@@ -224,6 +224,8 @@ import {
                         <Text style={[styles.setCol, styles.setColLabel]}>RPE</Text>
                       </View>
                     )}
+
+
   
                     {/* Warmup sets */}
                     {warmupSets.map((set) => (

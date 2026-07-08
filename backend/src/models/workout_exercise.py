@@ -16,6 +16,9 @@ class UpdateWorkoutExerciseRequest(BaseModel):
 class WorkoutExerciseResponse(BaseModel):
     id: int
     order_index: int
-    notes: Optional[str]
+    notes: Optional[str] = None
     workout_id: int
     exercise_id: int
+    name: str          
+    category: str    
+    muscle_group: str
