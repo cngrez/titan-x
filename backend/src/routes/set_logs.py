@@ -18,7 +18,7 @@ def get_set_logs_summary(
     db: WorkoutDatabase = Depends(get_db)
 ):
     summary = db.fetch_all(           
-           """SELECT we.notes as notes, r.name as routine_name,
+           """SELECT we.notes as notes, r.name as routine_name, sl.created_at as date, sl.id as set_log_id, e.name as exercise_name,
                 SUM(sl.weight * sl.reps) as total_volume,
                 COUNT(DISTINCT we.exercise_id) as exercise_count
               FROM workout_session ws

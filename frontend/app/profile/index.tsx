@@ -8,11 +8,15 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native"
 import { useRouter } from "expo-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/stores/authStore"
 import { apiClient } from "@/lib/apiClient"
+import * as SecureStore from "expo-secure-store"
+
 
 // Types
 interface Profile {
@@ -88,33 +92,22 @@ export default function ProfileScreen() {
 
   // Logout
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await apiClient.post(
-                "/api/auth/logout",
-                {},
-                {
-                  token: accessToken!,
-                }
-              )
-            } catch {
-              // Ignore errors - logout locally anyway
-            }
-
-            clearAuth()
-            router.replace("/login")
-          },
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await apiClient.post("/api/auth/logout", {}, { token: accessToken! })
+          } catch {}
+          clearAuth()
+          await SecureStore.deleteItemAsync("auth") 
+          queryClient.clear()                        
+          router.replace("/login")
         },
-      ]
-    )
+      },
+    ])
   }
 
   const handleSave = () => {
@@ -174,20 +167,23 @@ export default function ProfileScreen() {
   // Error state
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+        <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load profile</Text>
         <Pressable
           style={styles.retryButton}
           onPress={() => queryClient.invalidateQueries({ queryKey: ["profile"] })}
-        >
+          >
           <Text style={styles.retryButtonText}>Retry</Text>
         </Pressable>
       </View>
     )
-  }
+    }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+   >
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       {/* Profile Header Card */}
       <View style={styles.headerCard}>
         <View style={styles.avatarContainer}>
@@ -296,6 +292,13 @@ export default function ProfileScreen() {
           </>
         )}
       </View>
+      <Pressable onPress={() => router.push("/(tabs)")}>
+            <View>
+                <Text>
+                    Back
+                </Text>
+                </View>
+            </Pressable>
 
       {/* Logout */}
       <Pressable style={styles.logoutButton} onPress={handleLogout}>
@@ -303,8 +306,9 @@ export default function ProfileScreen() {
       </Pressable>
 
       {/* Bottom spacer */}
-      <View style={styles.bottomSpacer} />
+      <View/>
     </ScrollView>
+</KeyboardAvoidingView>
   )
 }
 
