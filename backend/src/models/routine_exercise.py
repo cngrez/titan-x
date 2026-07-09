@@ -8,7 +8,7 @@ class CreateRoutineExerciseRequest(BaseModel):
     default_weight: float = Field(..., ge=0, description="Default weight for the exercise")
     notes: Optional[str] = Field(None, max_length=500, description="Additional notes about the exercise in the routine")
     exercise_id: int = Field(..., gt=0, description="ID of the exercise associated with this routine exercise")
-
+    
     @field_validator("notes")
     @classmethod
     def validate_notes(cls, v):
@@ -17,7 +17,7 @@ class CreateRoutineExerciseRequest(BaseModel):
         return v
     
 class UpdateRoutineExerciseRequest(BaseModel):
-    order_index: Optional[int] = None  # 
+    order_index: Optional[int] = None  
     default_sets: Optional[int] = None
     default_reps: Optional[int] = None
     default_weight: Optional[float] = None
@@ -39,3 +39,7 @@ class RoutineExerciseResponse(BaseModel):
     notes: Optional[str]
     exercise_id: int
     routine_id: int
+    name: str
+    muscle_group: str
+    category: str  
+    

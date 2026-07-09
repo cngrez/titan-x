@@ -16,7 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuthStore } from "@/stores/authStore"
 import { apiClient } from "@/lib/apiClient"
 
-// Types
+// ── Types ──
 interface Exercise {
   id: number
   name: string
@@ -46,49 +46,45 @@ interface Routine {
   created_at: string
 }
 
-// a new exercise being built before saving
 interface DraftExercise {
   exercise_id: number
   name: string
-  default_sets: string
-  default_reps: string
-  default_weight: string
-  notes: string
+  sets: string
+  reps: string
+  weight: string
 }
 
-interface UpdateRoutineExerciseRequest {
-  order_index?: number
-  default_sets?: number
-  default_reps?: number
-  default_weight?: number
+interface ExerciseEdit {
+  sets: string
+  reps: string
+  weight: string
 }
 
+// ── Main Screen ──
 export default function RoutineScreen() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const accessToken = useAuthStore((state) => state.accessToken)
 
-  // which routine card is expanded
+  // expand/edit state
   const [expandedId, setExpandedId] = useState<number | null>(null)
-  // which routine is in edit mode
   const [editingId, setEditingId] = useState<number | null>(null)
-  // edit form state
   const [editName, setEditName] = useState("")
   const [editDescription, setEditDescription] = useState("")
+  const [exerciseEdits, setExerciseEdits] = useState<Record<number, ExerciseEdit>>({})
 
-  // create modal
+  // create modal state
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState("")
   const [newDescription, setNewDescription] = useState("")
   const [draftExercises, setDraftExercises] = useState<DraftExercise[]>([])
-  const [showExercisePicker, setShowExercisePicker] = useState(false)
-  const [createdRoutineId, setCreatedRoutineId] = useState<number | null>(null)
 
-  // exercise picker for existing routine edit
-  const [showExercisePickerForRoutine, setShowExercisePickerForRoutine] = useState(false)
+  // picker modals
+  const [showPickerForCreate, setShowPickerForCreate] = useState(false)
+  const [showPickerForEdit, setShowPickerForEdit] = useState(false)
 
-  // fetch all routines
-  const { data: routines = [], isLoading, error } = useQuery<Routine[]>({
+  // ── Queries ──
+  const { data: routines = [], isLoading } = useQuery<Routine[]>({
     queryKey: ["routines"],
     queryFn: () =>
       apiClient.get<Routine[]>("/api/routines/", {
@@ -97,7 +93,6 @@ export default function RoutineScreen() {
     enabled: !!accessToken,
   })
 
-  // fetch exercises for expanded routine
   const { data: routineExercises = [], isLoading: exercisesLoading } = useQuery<RoutineExercise[]>({
     queryKey: ["routine-exercises", expandedId],
     queryFn: () =>
@@ -108,7 +103,6 @@ export default function RoutineScreen() {
     enabled: !!expandedId && !!accessToken,
   })
 
-  // fetch all exercises for picker
   const { data: allExercises = [] } = useQuery<Exercise[]>({
     queryKey: ["exercises"],
     queryFn: () =>
@@ -118,24 +112,24 @@ export default function RoutineScreen() {
     enabled: !!accessToken,
   })
 
-  // create routine
+  // ── Mutations ──
   const { mutate: createRoutine, isPending: creating } = useMutation({
     mutationFn: (body: { name: string; description: string | null }) =>
       apiClient.post<Routine>("/api/routines/", body, {
         token: accessToken ?? undefined,
       }),
     onSuccess: async (routine) => {
-      // save exercises to the new routine
-      for (const draft of draftExercises) {
+      for (let i = 0; i < draftExercises.length; i++) {
+        const draft = draftExercises[i]
         await apiClient.post(
           `/api/routines/${routine.id}/exercises`,
           {
             exercise_id: draft.exercise_id,
-            order_index: draftExercises.indexOf(draft) + 1,
-            default_sets: parseInt(draft.default_sets) || 3,
-            default_reps: parseInt(draft.default_reps) || 10,
-            default_weight: parseFloat(draft.default_weight) || 0,
-            notes: draft.notes || null,
+            order_index: i + 1,
+            default_sets: parseInt(draft.sets) || 3,
+            default_reps: parseInt(draft.reps) || 10,
+            default_weight: parseFloat(draft.weight) || 0,
+            notes: null,
           },
           { token: accessToken ?? undefined }
         )
@@ -149,20 +143,6 @@ export default function RoutineScreen() {
     onError: (err: Error) => Alert.alert("Error", err.message),
   })
 
-  // update routine name/description
-  const { mutate: updateRoutine, isPending: updating } = useMutation({
-    mutationFn: ({ id, body }: { id: number; body: { name: string; description: string | null } }) =>
-      apiClient.patch<Routine>(`/api/routines/${id}`, body, {
-        token: accessToken ?? undefined,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["routines"] })
-      setEditingId(null)
-    },
-    onError: (err: Error) => Alert.alert("Error", err.message),
-  })
-
-  // delete routine
   const { mutate: deleteRoutine } = useMutation({
     mutationFn: (id: number) =>
       apiClient.delete(`/api/routines/${id}`, {
@@ -176,62 +156,106 @@ export default function RoutineScreen() {
     onError: (err: Error) => Alert.alert("Error", err.message),
   })
 
-  // update routine exercise (sets/reps/weight)
-  const { mutate: updateRoutineExercise } = useMutation({
-    mutationFn: ({ id, body }: { id: number; body: UpdateRoutineExerciseRequest }) => {
-      console.log("updating exercise:", id, body) 
-      return apiClient.patch<RoutineExercise>(`/api/routines/exercises/${id}`, body, {
-        token: accessToken ?? undefined,
-      })
-    },
-    onSuccess: () => {
-      console.log("update success, invalidating")
-      queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
-    },
-    onError: (err: Error) => {
-      console.log("update error:", err.message) 
-      Alert.alert("Error", err.message)
-    },
-  })
-
-  // delete routine exercise
   const { mutate: deleteRoutineExercise } = useMutation({
     mutationFn: (id: number) =>
       apiClient.delete(`/api/routines/exercises/${id}`, {
         token: accessToken ?? undefined,
       }),
     onSuccess: () => {
+      // immediately refetch so the exercise disappears
       queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
     },
+    onError: (err: Error) => Alert.alert("Error", err.message),
   })
 
-  // add exercise to existing routine
-  const addExerciseToRoutine = async (exercise: Exercise) => {
-    if (!expandedId) return
-    try {
-      const body = {
-        exercise_id: exercise.id,
-        order_index: routineExercises.length + 1,
-        default_sets: 3,
-        default_reps: 10,
-        default_weight: 0.00,
-        notes: "",
+  // ── Handlers ──
+  const startEdit = (routine: Routine) => {
+    setEditingId(routine.id)
+    setEditName(routine.name)
+    setEditDescription(routine.description ?? "")
+    // pre-fill exercise edits from current data
+    const edits: Record<number, ExerciseEdit> = {}
+    routineExercises.forEach((ex) => {
+      edits[ex.id] = {
+        sets: ex.default_sets.toString(),
+        reps: ex.default_reps.toString(),
+        weight: ex.default_weight.toString(),
       }
+    })
+    setExerciseEdits(edits)
+  }
 
-      console.log("Adding exercise to routine:", body)
+  const cancelEdit = () => {
+    setEditingId(null)
+    setExerciseEdits({})
+  }
 
-      await apiClient.post(
-        `/api/routines/${expandedId}/exercises`,
-        body,
+  const handleSaveAll = async () => {
+    if (!editName.trim()) {
+      Alert.alert("Error", "Name is required")
+      return
+    }
+
+    try {
+      // 1. save routine name/description
+      await apiClient.patch(
+        `/api/routines/${editingId}`,
+        {
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+        },
         { token: accessToken ?? undefined }
       )
 
-      queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
-      setShowExercisePickerForRoutine(false)
+      // 2. save all exercise edits
+      for (const [idStr, vals] of Object.entries(exerciseEdits)) {
+        await apiClient.patch(
+          `/api/routines/exercises/${idStr}`,
+          {
+            default_sets: parseInt(vals.sets) || 3,
+            default_reps: parseInt(vals.reps) || 10,
+            default_weight: parseFloat(vals.weight) || 0,
+          },
+          { token: accessToken ?? undefined }
+        )
+      }
+
+      // 3. refetch everything
+      await queryClient.invalidateQueries({ queryKey: ["routines"] })
+      await queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
+
+      setEditingId(null)
+      setExerciseEdits({})
     } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to save")
+    }
+  }
 
-      console.log("Error caught:", err.message)
+  const handleAddExerciseToRoutine = async (exercise: Exercise) => {
+    if (!expandedId) return
+    try {
+      await apiClient.post(
+        `/api/routines/${expandedId}/exercises`,
+        {
+          exercise_id: exercise.id,
+          order_index: routineExercises.length + 1,
+          default_sets: 3,
+          default_reps: 10,
+          default_weight: 0,
+          notes: null,
+        },
+        { token: accessToken ?? undefined }
+      )
+      await queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
+      setShowPickerForEdit(false)
 
+      // add to exerciseEdits so it's editable immediately
+      setExerciseEdits((prev) => ({
+        ...prev,
+        // we don't know the new id yet so refetch handles it
+      }))
+    } catch (err: any) {
+      Alert.alert("Error", err.message)
     }
   }
 
@@ -268,32 +292,11 @@ export default function RoutineScreen() {
     }
   }
 
-  const startEdit = (routine: Routine) => {
-    setEditingId(routine.id)
-    setEditName(routine.name)
-    setEditDescription(routine.description ?? "")
-  }
-
-  const handleSaveEdit = () => {
-    if (!editName.trim()) {
-      Alert.alert("Error", "Name is required")
-      return
-    }
-    updateRoutine({
-      id: editingId!,
-      body: { name: editName.trim(), description: editDescription.trim() || null },
-    })
-  }
-
-  const handleCreate = () => {
-    if (!newName.trim()) {
-      Alert.alert("Error", "Routine name is required")
-      return
-    }
-    createRoutine({
-      name: newName.trim(),
-      description: newDescription.trim() || null,
-    })
+  const updateExerciseEdit = (id: number, field: keyof ExerciseEdit, value: string) => {
+    setExerciseEdits((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value },
+    }))
   }
 
   const addDraftExercise = (exercise: Exercise) => {
@@ -302,13 +305,12 @@ export default function RoutineScreen() {
       {
         exercise_id: exercise.id,
         name: exercise.name,
-        default_sets: "3",
-        default_reps: "10",
-        default_weight: "0",
-        notes: "",
+        sets: "3",
+        reps: "10",
+        weight: "0",
       },
     ])
-    setShowExercisePicker(false)
+    setShowPickerForCreate(false)
   }
 
   const updateDraft = (index: number, field: keyof DraftExercise, value: string) => {
@@ -321,6 +323,7 @@ export default function RoutineScreen() {
     setDraftExercises((prev) => prev.filter((_, i) => i !== index))
   }
 
+  // ── Render ──
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -365,12 +368,19 @@ export default function RoutineScreen() {
             return (
               <View key={routine.id} style={styles.routineCard}>
 
-                {/* Routine header */}
+                {/* Tap to expand/collapse */}
                 <Pressable
                   style={styles.routineHeader}
                   onPress={() => {
-                    setExpandedId(isExpanded ? null : routine.id)
-                    setEditingId(null)
+                    if (isExpanded) {
+                      setExpandedId(null)
+                      setEditingId(null)
+                      setExerciseEdits({})
+                    } else {
+                      setExpandedId(routine.id)
+                      setEditingId(null)
+                      setExerciseEdits({})
+                    }
                   }}
                 >
                   <View style={styles.routineInfo}>
@@ -382,14 +392,14 @@ export default function RoutineScreen() {
                   <Text style={styles.chevron}>{isExpanded ? "▲" : "▼"}</Text>
                 </Pressable>
 
-                {/* Expanded */}
+                {/* Expanded content */}
                 {isExpanded && (
                   <View style={styles.expandedContent}>
 
-                    {/* Edit name/description inline */}
-                    {isEditing ? (
+                    {/* Edit name + description */}
+                    {isEditing && (
                       <View style={styles.inlineEdit}>
-                        <Text style={styles.label}>Name</Text>
+                        <Text style={styles.label}>Routine name</Text>
                         <TextInput
                           style={styles.input}
                           value={editName}
@@ -401,30 +411,13 @@ export default function RoutineScreen() {
                           style={[styles.input, styles.textArea]}
                           value={editDescription}
                           onChangeText={setEditDescription}
-                          placeholder="Optional description"
+                          placeholder="Optional"
                           multiline
                         />
-                        <View style={styles.inlineEditButtons}>
-                          <Pressable
-                            style={styles.cancelBtn}
-                            onPress={() => setEditingId(null)}
-                          >
-                            <Text style={styles.cancelBtnText}>Cancel</Text>
-                          </Pressable>
-                          <Pressable
-                            style={styles.saveBtn}
-                            onPress={handleSaveEdit}
-                            disabled={updating}
-                          >
-                            <Text style={styles.saveBtnText}>
-                              {updating ? "Saving..." : "Save"}
-                            </Text>
-                          </Pressable>
-                        </View>
                       </View>
-                    ) : null}
+                    )}
 
-                    {/* Exercises */}
+                    {/* Exercise list */}
                     {exercisesLoading ? (
                       <ActivityIndicator size="small" color="#3b82f6" />
                     ) : (
@@ -432,35 +425,88 @@ export default function RoutineScreen() {
                         {routineExercises.length === 0 && (
                           <Text style={styles.noExercises}>No exercises yet</Text>
                         )}
+
                         {routineExercises
                           .sort((a, b) => a.order_index - b.order_index)
-                          .map((ex) => (
-                            <ExerciseEditRow
-                              key={`${ex.id}-${ex.default_sets}-${ex.default_reps}-${ex.default_weight}`}
-                              exercise={ex}
-                              isEditing={isEditing}
-                              onUpdate={(body) => updateRoutineExercise({ id: ex.id, body })}
-                              onDelete={() => {
-                                Alert.alert(
-                                  "Remove exercise",
-                                  `Remove ${ex.name} from this routine?`,
-                                  [
-                                    { text: "Cancel", style: "cancel" },
-                                    {
-                                      text: "Remove",
-                                      style: "destructive",
-                                      onPress: () => deleteRoutineExercise(ex.id),
-                                    },
-                                  ]
-                                )
-                              }}
-                            />
-                          ))}
-                        {/* Add exercise button (only in edit mode) */}
+                          .map((ex) => {
+                            const edit = exerciseEdits[ex.id]
+                            return (
+                              <View key={ex.id} style={styles.exerciseRow}>
+                                <View style={styles.exerciseInfo}>
+                                  <Text style={styles.exerciseName}>{ex.name}</Text>
+                                  <Text style={styles.exerciseMeta}>
+                                    {ex.muscle_group} · {ex.category}
+                                  </Text>
+                                </View>
+
+                                {isEditing ? (
+                                  <View style={styles.exerciseEditFields}>
+                                    <View style={styles.miniField}>
+                                      <Text style={styles.miniLabel}>Sets</Text>
+                                      <TextInput
+                                        style={styles.miniInput}
+                                        value={edit?.sets ?? ex.default_sets.toString()}
+                                        onChangeText={(v) => updateExerciseEdit(ex.id, "sets", v)}
+                                        keyboardType="numeric"
+                                      />
+                                    </View>
+                                    <View style={styles.miniField}>
+                                      <Text style={styles.miniLabel}>Reps</Text>
+                                      <TextInput
+                                        style={styles.miniInput}
+                                        value={edit?.reps ?? ex.default_reps.toString()}
+                                        onChangeText={(v) => updateExerciseEdit(ex.id, "reps", v)}
+                                        keyboardType="numeric"
+                                      />
+                                    </View>
+                                    <View style={styles.miniField}>
+                                      <Text style={styles.miniLabel}>kg</Text>
+                                      <TextInput
+                                        style={styles.miniInput}
+                                        value={edit?.weight ?? ex.default_weight.toString()}
+                                        onChangeText={(v) => updateExerciseEdit(ex.id, "weight", v)}
+                                        keyboardType="decimal-pad"
+                                      />
+                                    </View>
+                                    <Pressable
+                                      onPress={() =>
+                                        Alert.alert(
+                                          "Remove exercise",
+                                          `Remove ${ex.name}?`,
+                                          [
+                                            { text: "Cancel", style: "cancel" },
+                                            {
+                                              text: "Remove",
+                                              style: "destructive",
+                                              onPress: () => deleteRoutineExercise(ex.id),
+                                            },
+                                          ]
+                                        )
+                                      }
+                                      style={styles.removeBtn}
+                                    >
+                                      <Text style={styles.removeBtnText}>✕</Text>
+                                    </Pressable>
+                                  </View>
+                                ) : (
+                                  <View style={styles.exerciseDefaults}>
+                                    <Text style={styles.defaultText}>
+                                      {ex.default_sets} × {ex.default_reps}
+                                    </Text>
+                                    <Text style={styles.defaultWeight}>
+                                      {ex.default_weight}kg
+                                    </Text>
+                                  </View>
+                                )}
+                              </View>
+                            )
+                          })}
+
+                        {/* Add exercise button in edit mode */}
                         {isEditing && (
                           <Pressable
                             style={styles.addExerciseBtn}
-                            onPress={() => setShowExercisePickerForRoutine(true)}
+                            onPress={() => setShowPickerForEdit(true)}
                           >
                             <Text style={styles.addExerciseBtnText}>+ Add exercise</Text>
                           </Pressable>
@@ -470,39 +516,55 @@ export default function RoutineScreen() {
 
                     {/* Action buttons */}
                     <View style={styles.actionRow}>
-                      <Pressable
-                        style={styles.startBtn}
-                        onPress={() => handleStartWithRoutine(routine.id)}
-                      >
-                        <Text style={styles.startBtnText}>Start workout</Text>
-                      </Pressable>
                       {!isEditing ? (
-                        <Pressable
-                          style={styles.editRoutineBtn}
-                          onPress={() => startEdit(routine)}
-                        >
-                          <Text style={styles.editRoutineBtnText}>Edit</Text>
-                        </Pressable>
+                        <>
+                          <Pressable
+                            style={styles.startBtn}
+                            onPress={() => handleStartWithRoutine(routine.id)}
+                          >
+                            <Text style={styles.startBtnText}>Start workout</Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.editRoutineBtn}
+                            onPress={() => startEdit(routine)}
+                          >
+                            <Text style={styles.editRoutineBtnText}>Edit</Text>
+                          </Pressable>
+                        </>
                       ) : (
-                        <Pressable
-                          style={styles.deleteBtn}
-                          onPress={() =>
-                            Alert.alert(
-                              "Delete routine",
-                              `Delete "${routine.name}"?`,
-                              [
-                                { text: "Cancel", style: "cancel" },
-                                {
-                                  text: "Delete",
-                                  style: "destructive",
-                                  onPress: () => deleteRoutine(routine.id),
-                                },
-                              ]
-                            )
-                          }
-                        >
-                          <Text style={styles.deleteBtnText}>Delete</Text>
-                        </Pressable>
+                        <>
+                          <Pressable
+                            style={styles.saveBtn}
+                            onPress={handleSaveAll}
+                          >
+                            <Text style={styles.saveBtnText}>Save</Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.cancelBtn}
+                            onPress={cancelEdit}
+                          >
+                            <Text style={styles.cancelBtnText}>Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.deleteBtn}
+                            onPress={() =>
+                              Alert.alert(
+                                "Delete routine",
+                                `Delete "${routine.name}"?`,
+                                [
+                                  { text: "Cancel", style: "cancel" },
+                                  {
+                                    text: "Delete",
+                                    style: "destructive",
+                                    onPress: () => deleteRoutine(routine.id),
+                                  },
+                                ]
+                              )
+                            }
+                          >
+                            <Text style={styles.deleteBtnText}>Delete</Text>
+                          </Pressable>
+                        </>
                       )}
                     </View>
 
@@ -524,13 +586,12 @@ export default function RoutineScreen() {
               <Text style={styles.modalCancel}>Cancel</Text>
             </Pressable>
             <Text style={styles.modalTitle}>New routine</Text>
-            <Pressable onPress={handleCreate} disabled={creating}>
+            <Pressable onPress={() => createRoutine({ name: newName.trim(), description: newDescription.trim() || null })} disabled={creating}>
               <Text style={styles.modalSave}>{creating ? "Saving..." : "Save"}</Text>
             </Pressable>
           </View>
 
           <ScrollView style={styles.modalBody}>
-            {/* Name + description */}
             <View style={styles.field}>
               <Text style={styles.label}>Name</Text>
               <TextInput
@@ -552,7 +613,6 @@ export default function RoutineScreen() {
               />
             </View>
 
-            {/* Draft exercises */}
             <Text style={styles.sectionLabel}>Exercises</Text>
             {draftExercises.length === 0 && (
               <Text style={styles.noExercises}>No exercises added yet</Text>
@@ -570,8 +630,8 @@ export default function RoutineScreen() {
                     <Text style={styles.draftFieldLabel}>Sets</Text>
                     <TextInput
                       style={styles.draftInput}
-                      value={draft.default_sets}
-                      onChangeText={(v) => updateDraft(index, "default_sets", v)}
+                      value={draft.sets}
+                      onChangeText={(v) => updateDraft(index, "sets", v)}
                       keyboardType="numeric"
                     />
                   </View>
@@ -579,8 +639,8 @@ export default function RoutineScreen() {
                     <Text style={styles.draftFieldLabel}>Reps</Text>
                     <TextInput
                       style={styles.draftInput}
-                      value={draft.default_reps}
-                      onChangeText={(v) => updateDraft(index, "default_reps", v)}
+                      value={draft.reps}
+                      onChangeText={(v) => updateDraft(index, "reps", v)}
                       keyboardType="numeric"
                     />
                   </View>
@@ -588,8 +648,8 @@ export default function RoutineScreen() {
                     <Text style={styles.draftFieldLabel}>Weight (kg)</Text>
                     <TextInput
                       style={styles.draftInput}
-                      value={draft.default_weight}
-                      onChangeText={(v) => updateDraft(index, "default_weight", v)}
+                      value={draft.weight}
+                      onChangeText={(v) => updateDraft(index, "weight", v)}
                       keyboardType="decimal-pad"
                     />
                   </View>
@@ -597,23 +657,19 @@ export default function RoutineScreen() {
               </View>
             ))}
 
-            <Pressable
-              style={styles.addExerciseBtn}
-              onPress={() => setShowExercisePicker(true)}
-            >
+            <Pressable style={styles.addExerciseBtn} onPress={() => setShowPickerForCreate(true)}>
               <Text style={styles.addExerciseBtnText}>+ Add exercise</Text>
             </Pressable>
-
             <View style={{ height: 40 }} />
           </ScrollView>
         </View>
       </Modal>
 
-      {/* ── Exercise Picker (for create modal) ── */}
-      <Modal visible={showExercisePicker} animationType="slide" presentationStyle="pageSheet">
+      {/* ── Exercise Picker for Create ── */}
+      <Modal visible={showPickerForCreate} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <Pressable onPress={() => setShowExercisePicker(false)}>
+            <Pressable onPress={() => setShowPickerForCreate(false)}>
               <Text style={styles.modalCancel}>Cancel</Text>
             </Pressable>
             <Text style={styles.modalTitle}>Pick exercise</Text>
@@ -623,29 +679,20 @@ export default function RoutineScreen() {
             data={allExercises}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <Pressable
-                style={styles.exercisePickerItem}
-                onPress={() => addDraftExercise(item)}
-              >
+              <Pressable style={styles.exercisePickerItem} onPress={() => addDraftExercise(item)}>
                 <Text style={styles.exercisePickerName}>{item.name}</Text>
-                <Text style={styles.exercisePickerMeta}>
-                  {item.category} · {item.muscle_group}
-                </Text>
+                <Text style={styles.exercisePickerMeta}>{item.category} · {item.muscle_group}</Text>
               </Pressable>
             )}
           />
         </View>
       </Modal>
 
-      {/* ── Exercise Picker (for existing routine) ── */}
-      <Modal
-        visible={showExercisePickerForRoutine}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
+      {/* ── Exercise Picker for Edit ── */}
+      <Modal visible={showPickerForEdit} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <Pressable onPress={() => setShowExercisePickerForRoutine(false)}>
+            <Pressable onPress={() => setShowPickerForEdit(false)}>
               <Text style={styles.modalCancel}>Cancel</Text>
             </Pressable>
             <Text style={styles.modalTitle}>Pick exercise</Text>
@@ -655,103 +702,15 @@ export default function RoutineScreen() {
             data={allExercises}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <Pressable
-                style={styles.exercisePickerItem}
-                onPress={() => addExerciseToRoutine(item)}
-              >
+              <Pressable style={styles.exercisePickerItem} onPress={() => handleAddExerciseToRoutine(item)}>
                 <Text style={styles.exercisePickerName}>{item.name}</Text>
-                <Text style={styles.exercisePickerMeta}>
-                  {item.category} · {item.muscle_group}
-                </Text>
+                <Text style={styles.exercisePickerMeta}>{item.category} · {item.muscle_group}</Text>
               </Pressable>
             )}
           />
         </View>
       </Modal>
 
-    </View>
-  )
-}
-
-// ── Extracted component for editing a single exercise row ──
-function ExerciseEditRow({
-  exercise,
-  isEditing,
-  onUpdate,
-  onDelete,
-}: {
-  exercise: RoutineExercise
-  isEditing: boolean
-  onUpdate: (body: UpdateRoutineExerciseRequest)=> void
-  onDelete: () => void
-}) {
-  const [sets, setSets] = useState(exercise.default_sets.toString())
-  const [reps, setReps] = useState(exercise.default_reps.toString())
-  const [weight, setWeight] = useState(exercise.default_weight.toString())
-
-  const handleBlur = () => {
-    onUpdate({
-      default_sets: parseInt(sets) || exercise.default_sets,
-      default_reps: parseInt(reps) || exercise.default_reps,
-      default_weight: parseFloat(weight) || exercise.default_weight,
-    })
-  }
-
-  return (
-    <View style={styles.exerciseRow}>
-      <View style={styles.exerciseInfo}>
-        <Text style={styles.exerciseName}>{exercise.name}</Text>
-        <Text style={styles.exerciseMeta}>
-          {exercise.muscle_group} · {exercise.category}
-        </Text>
-      </View>
-
-      {isEditing ? (
-        // editable inputs
-        <View style={styles.exerciseEditFields}>
-          <View style={styles.miniField}>
-            <Text style={styles.miniLabel}>Sets</Text>
-            <TextInput
-              style={styles.miniInput}
-              value={sets}
-              onChangeText={setSets}
-              onBlur={handleBlur}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.miniField}>
-            <Text style={styles.miniLabel}>Reps</Text>
-            <TextInput
-              style={styles.miniInput}
-              value={reps}
-              onChangeText={setReps}
-              onBlur={handleBlur}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.miniField}>
-            <Text style={styles.miniLabel}>kg</Text>
-            <TextInput
-              style={styles.miniInput}
-              value={weight}
-              onChangeText={setWeight}
-              onBlur={handleBlur}
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <Pressable onPress={onDelete} style={styles.removeBtn}>
-            <Text style={styles.removeBtnText}>✕</Text>
-          </Pressable>
-        </View>
-      ) : (
-        // read only
-        <View style={styles.exerciseDefaults}>
-          <Text style={styles.defaultText}>
-            {exercise.default_sets} × {exercise.default_reps}
-          </Text>
-          <Text style={styles.defaultWeight}>{exercise.default_weight}kg</Text>
-        </View>
-      )}
     </View>
   )
 }
@@ -813,29 +772,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
-  // inline edit
   inlineEdit: { marginBottom: 16 },
-  inlineEditButtons: { flexDirection: "row", gap: 8, marginTop: 8 },
-  cancelBtn: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cancelBtnText: { color: "#6b7280", fontWeight: "600" },
-  saveBtn: {
-    flex: 1,
-    backgroundColor: "#3b82f6",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  saveBtnText: { color: "#fff", fontWeight: "600" },
 
-  noExercises: { fontSize: 13, color: "#9ca3af", textAlign: "center", padding: 8 },
+  noExercises: {
+    fontSize: 13,
+    color: "#9ca3af",
+    textAlign: "center",
+    paddingVertical: 12,
+  },
 
-  // exercise row
   exerciseRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -851,7 +796,6 @@ const styles = StyleSheet.create({
   defaultText: { fontSize: 14, fontWeight: "600", color: "#3b82f6" },
   defaultWeight: { fontSize: 12, color: "#6b7280", marginTop: 2 },
 
-  // editable exercise fields
   exerciseEditFields: {
     flexDirection: "row",
     alignItems: "center",
@@ -870,7 +814,7 @@ const styles = StyleSheet.create({
     color: "#111827",
     backgroundColor: "#f9fafb",
   },
-  removeBtn: { padding: 4 },
+  removeBtn: { padding: 4, marginLeft: 4 },
   removeBtnText: { color: "#ef4444", fontSize: 16 },
 
   addExerciseBtn: {
@@ -884,7 +828,6 @@ const styles = StyleSheet.create({
   },
   addExerciseBtnText: { color: "#3b82f6", fontWeight: "600", fontSize: 14 },
 
-  // action row
   actionRow: { flexDirection: "row", gap: 8, marginTop: 16 },
   startBtn: {
     flex: 2,
@@ -902,6 +845,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   editRoutineBtnText: { color: "#374151", fontWeight: "600", fontSize: 14 },
+  saveBtn: {
+    flex: 2,
+    backgroundColor: "#3b82f6",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: "#f3f4f6",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelBtnText: { color: "#6b7280", fontWeight: "600", fontSize: 14 },
   deleteBtn: {
     flex: 1,
     backgroundColor: "#fef2f2",
@@ -911,7 +870,6 @@ const styles = StyleSheet.create({
   },
   deleteBtnText: { color: "#ef4444", fontWeight: "600", fontSize: 14 },
 
-  // empty
   emptyCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -932,7 +890,6 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: { color: "#fff", fontWeight: "600", fontSize: 14 },
 
-  // modal
   modal: { flex: 1, backgroundColor: "#f9fafb" },
   modalHeader: {
     flexDirection: "row",
@@ -967,10 +924,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#6b7280",
     marginBottom: 12,
-    marginTop: 4,
   },
 
-  // draft exercise card
   draftCard: {
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -1001,7 +956,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
   },
 
-  // exercise picker
   exercisePickerItem: {
     padding: 16,
     backgroundColor: "#fff",
