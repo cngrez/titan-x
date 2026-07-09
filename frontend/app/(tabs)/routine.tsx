@@ -195,21 +195,28 @@ export default function RoutineScreen() {
   const addExerciseToRoutine = async (exercise: Exercise) => {
     if (!expandedId) return
     try {
+      const body = {
+        exercise_id: exercise.id,
+        order_index: routineExercises.length + 1,
+        default_sets: 3,
+        default_reps: 10,
+        default_weight: 0.00,
+        notes: "",
+      }
+      
+      console.log("Adding exercise to routine:", body)
+      
       await apiClient.post(
         `/api/routines/${expandedId}/exercises`,
-        {
-          exercise_id: exercise.id,
-          order_index: routineExercises.length + 1,
-          default_sets: 3,
-          default_reps: 10,
-          default_weight: 0,
-          notes: null,
-        },
+        body,
         { token: accessToken ?? undefined }
       )
+      
       queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
       setShowExercisePickerForRoutine(false)
     } catch (err: any) {
+
+      console.log("Error caught:", err.message)
       Alert.alert("Error", err.message)
     }
   }

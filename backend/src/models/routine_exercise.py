@@ -8,7 +8,6 @@ class CreateRoutineExerciseRequest(BaseModel):
     default_weight: float = Field(..., ge=0, description="Default weight for the exercise")
     notes: Optional[str] = Field(None, max_length=500, description="Additional notes about the exercise in the routine")
     exercise_id: int = Field(..., gt=0, description="ID of the exercise associated with this routine exercise")
-    routine_id: int = Field(..., gt=0, description="ID of the routine associated with this routine exercise")
 
     @field_validator("notes")
     @classmethod
@@ -24,7 +23,6 @@ class UpdateRoutineExerciseRequest(BaseModel):
     default_weight: float = Field(..., ge=0, description="Default weight for the exercise")
     notes: Optional[str] = Field(None, max_length=500, description="Additional notes about the exercise in the routine")
     exercise_id: int = Field(..., gt=0, description="ID of the exercise associated with this routine exercise")
-    routine_id: int = Field(..., gt=0, description="ID of the routine associated with this routine exercise")
 
     @field_validator("notes")
     @classmethod
