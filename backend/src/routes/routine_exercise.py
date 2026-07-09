@@ -67,8 +67,14 @@ def add_exercise_to_routine(
          body.default_weight, body.notes, body.exercise_id, routine_id)
     )
     routine_exercise = db.fetch_one(
-        "SELECT * FROM routine_exercise WHERE id = ?", (cursor.lastrowid,)
-    )
+routine_exercise = db.fetch_one(
+        """SELECT re.*, e.name, e.category, e.muscle_group
+           FROM routine_exercise re
+           JOIN exercise e ON re.exercise_id = e.id
+           WHERE re.id = ?""",
+        (cursor.lastrowid,)    
+        )
+)
     return dict(routine_exercise)
 
 # PATCH /api/routines/exercises/{routine_exercise_id}
@@ -95,15 +101,16 @@ def update_routine_exercise(
     set_clause = ", ".join(f"{k} = ?" for k in fields)  
     values = list(fields.values()) + [routine_exercise_id]
 
-    db.execute(
-        f"UPDATE routine_exercise SET {set_clause} WHERE id = ?",
-        tuple(values)
-    )
+    db.execute(f"UPDATE routine_exercise SET {set_clause} WHERE id = ?", tuple(values))
+
     updated = db.fetch_one(
-        "SELECT * FROM routine_exercise WHERE id = ?", (routine_exercise_id,)
+        """SELECT re.*, e.name, e.category, e.muscle_group
+           FROM routine_exercise re
+           JOIN exercise e ON re.exercise_id = e.id
+           WHERE re.id = ?""",
+        (routine_exercise_id,)
     )
     return dict(updated)
-
 # DELETE /api/routines/exercises/{routine_exercise_id}
 @router.delete("/exercises/{routine_exercise_id}", status_code=204)
 def remove_exercise_from_routine(

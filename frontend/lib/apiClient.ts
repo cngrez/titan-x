@@ -114,29 +114,41 @@ export const apiClient = {
     return data
   },
 
-  delete: async <T>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
+  delete: async <T>(
+    endpoint: string,
+    options: RequestOptions = {}
+  ): Promise<T> => {
     const headers: Record<string, string> = {}
+  
     if (options.token) {
       headers["Authorization"] = `Bearer ${options.token}`
     }
-
+  
     const res = await fetch(`${BASE_URL}${endpoint}`, {
       method: "DELETE",
       headers,
     })
-
+  
+    // Handle 204 No Content
+    if (res.status === 204) {
+      return undefined as T
+    }
+  
     const data = await res.json()
-
+  
     if (!res.ok) {
       const errorMessage = formatError(data)
+  
       console.error("API Error:", {
         status: res.status,
         endpoint,
         response: data,
-        message: errorMessage
+        message: errorMessage,
       })
+  
       throw new Error(errorMessage)
     }
+  
     return data
-  },
+  }
 }
