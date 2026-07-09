@@ -217,7 +217,7 @@ export default function RoutineScreen() {
     } catch (err: any) {
 
       console.log("Error caught:", err.message)
-      Alert.alert("Error", err.message)
+
     }
   }
 

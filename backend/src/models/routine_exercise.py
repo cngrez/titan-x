@@ -17,12 +17,11 @@ class CreateRoutineExerciseRequest(BaseModel):
         return v
     
 class UpdateRoutineExerciseRequest(BaseModel):
-    order_index: int = Field(..., gt=0, description="Order of the exercise in the routine")
-    default_sets: int = Field(..., gt=0, description="Default number of sets for the exercise")
-    default_reps: int = Field(..., gt=0, description="Default number of reps for the exercise")
-    default_weight: float = Field(..., ge=0, description="Default weight for the exercise")
-    notes: Optional[str] = Field(None, max_length=500, description="Additional notes about the exercise in the routine")
-    exercise_id: int = Field(..., gt=0, description="ID of the exercise associated with this routine exercise")
+    order_index: Optional[int] = None  # 
+    default_sets: Optional[int] = None
+    default_reps: Optional[int] = None
+    default_weight: Optional[float] = None
+    notes: Optional[str] = None
 
     @field_validator("notes")
     @classmethod
