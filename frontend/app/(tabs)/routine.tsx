@@ -56,6 +56,13 @@ interface DraftExercise {
   notes: string
 }
 
+interface UpdateRoutineExerciseRequest {
+  order_index?: number
+  default_sets?: number
+  default_reps?: number
+  default_weight?: number
+}
+
 export default function RoutineScreen() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -171,12 +178,19 @@ export default function RoutineScreen() {
 
   // update routine exercise (sets/reps/weight)
   const { mutate: updateRoutineExercise } = useMutation({
-    mutationFn: ({ id, body }: { id: number; body: Partial<RoutineExercise> }) =>
-      apiClient.patch(`/api/routines/exercises/${id}`, body, {
+    mutationFn: ({ id, body }: { id: number; body: UpdateRoutineExerciseRequest }) => {
+      console.log("updating exercise:", id, body) 
+      return apiClient.patch<RoutineExercise>(`/api/routines/exercises/${id}`, body, {
         token: accessToken ?? undefined,
-      }),
+      })
+    },
     onSuccess: () => {
+      console.log("update success, invalidating")
       queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
+    },
+    onError: (err: Error) => {
+      console.log("update error:", err.message) 
+      Alert.alert("Error", err.message)
     },
   })
 
@@ -203,15 +217,15 @@ export default function RoutineScreen() {
         default_weight: 0.00,
         notes: "",
       }
-      
+
       console.log("Adding exercise to routine:", body)
-      
+
       await apiClient.post(
         `/api/routines/${expandedId}/exercises`,
         body,
         { token: accessToken ?? undefined }
       )
-      
+
       queryClient.invalidateQueries({ queryKey: ["routine-exercises", expandedId] })
       setShowExercisePickerForRoutine(false)
     } catch (err: any) {
@@ -422,7 +436,7 @@ export default function RoutineScreen() {
                           .sort((a, b) => a.order_index - b.order_index)
                           .map((ex) => (
                             <ExerciseEditRow
-                              key={ex.id}
+                              key={`${ex.id}-${ex.default_sets}-${ex.default_reps}-${ex.default_weight}`}
                               exercise={ex}
                               isEditing={isEditing}
                               onUpdate={(body) => updateRoutineExercise({ id: ex.id, body })}
@@ -442,7 +456,6 @@ export default function RoutineScreen() {
                               }}
                             />
                           ))}
-
                         {/* Add exercise button (only in edit mode) */}
                         {isEditing && (
                           <Pressable
@@ -669,7 +682,7 @@ function ExerciseEditRow({
 }: {
   exercise: RoutineExercise
   isEditing: boolean
-  onUpdate: (body: Partial<RoutineExercise>) => void
+  onUpdate: (body: UpdateRoutineExerciseRequest)=> void
   onDelete: () => void
 }) {
   const [sets, setSets] = useState(exercise.default_sets.toString())
